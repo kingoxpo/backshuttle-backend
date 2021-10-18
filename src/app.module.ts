@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
@@ -6,7 +7,10 @@ import { StoreModule } from './store/store.module';
 
 @Module({
   imports: [
-    StoreModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: process.env.NODE_ENV === "dev" ? ".dev.env" : ".test.env",
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -19,8 +23,8 @@ import { StoreModule } from './store/store.module';
     }),
     GraphQLModule.forRoot({
     autoSchemaFile: true,
-  }),
-  StoreModule
+    }),
+    StoreModule,
   ],
   controllers: [],
   providers: [],
