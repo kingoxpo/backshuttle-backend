@@ -2,7 +2,7 @@
 
 The Backend of BackShuttle
 
-## User Model:
+## User Entity:
 
 - id
 - createdAt
