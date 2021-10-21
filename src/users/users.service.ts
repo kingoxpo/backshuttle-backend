@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { CreateAccountInput } from "./dtos/create-account.dto";
+import { LoginInput } from "./dtos/login.dto";
 import { User } from "./entities/user.entity";
 
 
@@ -29,7 +30,38 @@ export class UsersService {
         //make error
         return {ok: false, error:'계정을 생성할 수 없습니다'};
       }
-      // hash the password
+    }
 
+    async login({
+      email, 
+      password,
+    }: LoginInput): Promise<{ ok:boolean; error?:string, token?: string }> {
+      // check if the password is correct
+      // make a JWT and give it to the user
+      try {
+        const user = await this.users.findOne({ email });
+        if(!user){
+          return {
+            ok: false,
+            error: '이메일을 다시 확인하세요. 등록되지 않은 이메일입니다.'
+          };
+        }
+        const passwordCorrect = await user.checkPassword(password);
+        if(!passwordCorrect){
+          return{
+            ok:false,
+            error: '잘못된 비밀번호입니다. 다시 시도하거나 비밀번호 찾기를 클릭하여 재설정하세요.'
+          };
+        }
+        return {
+          ok: true,
+          token:'create login token',
+        }
+      } catch(error){
+        return {
+          ok: false,
+          error,
+        };
+      }
     }
 }
