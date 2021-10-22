@@ -6,6 +6,7 @@ import { CreateAccountInput } from "./dtos/create-account.dto";
 import { LoginInput } from "./dtos/login.dto";
 import { User } from "./entities/user.entity";
 import { ConfigService } from "@nestjs/config";
+import { JwtService } from "src/jwt/jwt.service";
 
 
 
@@ -15,8 +16,9 @@ export class UsersService {
     @InjectRepository(User)
     private readonly users: Repository<User>,
     private readonly config: ConfigService,
+    private readonly jwtService: JwtService,
     ) {
-      console.log(this.config.get('SECRET_KEY'))
+      this.jwtService.welcome()
     }
     async createAccount({
       email,
@@ -58,16 +60,16 @@ export class UsersService {
             error: '잘못된 비밀번호입니다. 다시 시도하거나 비밀번호 찾기를 클릭하여 재설정하세요.'
           };
         }
-        const token = jwt.sign({id:user.id}, this.config.get('SECRET_KEY'))
+        const token = jwt.sign({ id:user.id }, this.config.get('SECRET_KEY'))
         return {
           ok: true,
-          token:'create login token',
-        }
+          token,          
+        }      
       } catch(error){
         return {
           ok: false,
           error,
         };
       }
-    }
+    }    
 }
