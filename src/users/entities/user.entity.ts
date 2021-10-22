@@ -53,6 +53,4 @@ export class User extends CoreEntity{
             throw new InternalServerErrorException();
         }
     }
-
-
 }
