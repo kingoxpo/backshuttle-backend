@@ -15,11 +15,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly users: Repository<User>,
-    private readonly config: ConfigService,
     private readonly jwtService: JwtService,
-    ) {
-      this.jwtService.welcome()
-    }
+    ) {}
     async createAccount({
       email,
       password,
@@ -60,7 +57,7 @@ export class UsersService {
             error: '잘못된 비밀번호입니다. 다시 시도하거나 비밀번호 찾기를 클릭하여 재설정하세요.'
           };
         }
-        const token = jwt.sign({ id:user.id }, this.config.get('SECRET_KEY'))
+        const token = this.jwtService.sign(user.id);
         return {
           ok: true,
           token,          
