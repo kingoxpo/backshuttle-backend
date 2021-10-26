@@ -11,7 +11,7 @@ import { JwtService } from "src/jwt/jwt.service";
 
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly users: Repository<User>,
@@ -68,5 +68,9 @@ export class UsersService {
           error,
         };
       }
-    }    
+    }
+
+    async findById(id:number): Promise<User> {
+      return this.users.findOne({id});
+    }
 }
