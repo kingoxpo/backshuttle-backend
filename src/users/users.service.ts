@@ -5,7 +5,6 @@ import * as jwt from 'jsonwebtoken';
 import { CreateAccountInput } from "./dtos/create-account.dto";
 import { LoginInput } from "./dtos/login.dto";
 import { User } from "./entities/user.entity";
-import { ConfigService } from "@nestjs/config";
 import { JwtService } from "src/jwt/jwt.service";
 
 
