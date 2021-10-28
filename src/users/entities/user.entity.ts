@@ -6,15 +6,8 @@ import { InternalServerErrorException } from '@nestjs/common';
 import { IsEmail, isEmail, IsEnum } from 'class-validator';
 import { ok } from 'assert';
 
-
-enum UserRole {
-    Owner,
-    Client,
-    Delivery,
-}
+enum UserRole {Owner, Client, Delivery,}
 registerEnumType(UserRole, {name:"UserRole"})
-
-
 
 @InputType({ isAbstract:true })
 @ObjectType()
@@ -33,6 +26,11 @@ export class User extends CoreEntity{
     @Field(type => UserRole)
     @IsEnum(UserRole)
     role: UserRole;
+
+    @Column({default: false})
+    @Field(type => Boolean)
+    verified: boolean;
+
 
     @BeforeInsert()
     @BeforeUpdate()
