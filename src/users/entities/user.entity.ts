@@ -3,8 +3,7 @@ import { CoreEntity } from 'src/common/entities/core.entity';
 import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
 import * as bcrypt from "bcrypt";
 import { InternalServerErrorException } from '@nestjs/common';
-import { IsEmail, isEmail, IsEnum } from 'class-validator';
-import { ok } from 'assert';
+import { IsEmail, IsEnum } from 'class-validator';
 
 enum UserRole {Owner, Client, Delivery,}
 registerEnumType(UserRole, {name:"UserRole"})
