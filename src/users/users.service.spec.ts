@@ -2,6 +2,7 @@ import { Test } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { JwtService } from "src/jwt/jwt.service";
 import { MailService } from "src/mail/mail.service";
+import { Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 import { Verification } from "./entities/verification.entity";
 import { UserService } from "./users.service";
@@ -15,13 +16,15 @@ const mockJwtService = {
   sign:jest.fn(),
   verify:jest.fn(),
 }
-
 const mockMailService = {
   sendVerificationEmail:jest.fn(),
 }
 
+type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
+
 describe('UserService', () => {
   let service: UserService;
+  let usersRepository: MockRepository<User>;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
@@ -46,13 +49,28 @@ describe('UserService', () => {
       ],
     }).compile();
     service = module.get<UserService>(UserService);
-  })
+    usersRepository = module.get(getRepositoryToken(User));
+  });
+
 
   it('it should be defind', () => {
     expect(service).toBeDefined();
   })
 
-  it.todo('createAccount');
+  describe('createAccount', () => {
+    it("should fail if user exists", async () => {
+      usersRepository.findOne.mockResolvedValue({
+        id:1,
+        email:"test@test.com",
+      })
+      const result = await service.createAccount({
+        email: '',
+        password: '',
+        role: 1,
+      });
+      expect(result).toMatchObject({ok: false, error:'이미 가입된 이메일 주소입니다. 다른 이메일을 입력하여 주세요.'})
+    });
+  });
   it.todo('login');
   it.todo('findById');
   it.todo('editProfile');
