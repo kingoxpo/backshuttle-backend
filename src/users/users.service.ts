@@ -30,7 +30,6 @@ export class UserService {
   }: CreateAccountInput): Promise<CreateAccountOutput> {
     try {
       const exists = await this.users.findOne({ email });
-      console.log(exists)
       if (exists){
         // make error
         return {ok: false, error:'이미 가입된 이메일 주소입니다. 다른 이메일을 입력하여 주세요.'};
@@ -52,7 +51,10 @@ export class UserService {
 
   }
 
-  async login({ email, password }: LoginInput): Promise<LoginOutput> {
+  async login({
+    email,
+    password,
+   }: LoginInput): Promise<LoginOutput> {
     try {
       const user = await this.users.findOne(
         { email },
@@ -71,7 +73,6 @@ export class UserService {
           error: '잘못된 비밀번호입니다. 다시 시도하거나 비밀번호 찾기를 클릭하여 재설정하세요.'
         };
       }
-      // console.log(user)
       const token = this.jwtService.sign(user.id);
       return {
         ok: true,
@@ -80,7 +81,7 @@ export class UserService {
     } catch(error){
       return {
         ok: false,
-        error,
+        error: '로그인할 수 없음',
       };
     }
   }
