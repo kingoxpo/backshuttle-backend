@@ -8,9 +8,11 @@ import { Verification } from "./entities/verification.entity";
 import { UserService } from "./users.service";
 
 const mockRepository = () => ({
-  findOne:jest.fn(),
-  save:jest.fn(),
-  create:jest.fn(),
+  findOne: jest.fn(),
+  save: jest.fn(),
+  create: jest.fn(),
+  findOneOrFail: jest.fn(),
+  delete: jest.fn(),
 });
 
 const mockJwtService = {
@@ -82,7 +84,7 @@ describe('UserService', () => {
         ok: false, error:'이미 가입된 이메일 주소입니다. 다른 이메일을 입력하여 주세요.',
       });
     });
-    it('새로운 사용자를 생성', async () => {
+    it('새로운 사용자 생성', async () => {
       usersRepository.findOne.mockResolvedValue(undefined);
       usersRepository.create.mockReturnValue(createAccountArgs);
       usersRepository.save.mockResolvedValue(createAccountArgs);
@@ -160,7 +162,6 @@ describe('UserService', () => {
       };
       usersRepository.findOne.mockResolvedValue(mockedUser);
       const result = await service.login(loginArgs);
-      console.log(result)
       expect(jwtService.sign).toHaveBeenCalledWith(expect.any(Number));
       expect(result).toEqual({ ok: true, token: 'signed-token'});
     });
@@ -171,8 +172,116 @@ describe('UserService', () => {
       expect(result).toEqual({ ok: false, error: '로그인할 수 없음'} )
     });
   });
-  it.todo('findById');
-  it.todo('editProfile');
-  it.todo('verifyEmail');
+  
+  describe('findById', () => {
+    const findByIdArgs = {
+      id: 1,
+    }
+    it('기존 사용자를 찾음', async () => {
+      usersRepository.findOneOrFail.mockResolvedValue(findByIdArgs);
+      const result = await service.findById(1);      
+      expect(result).toEqual({ok: true, user: findByIdArgs});
+    })
+
+    it('기존 사용자를 못찾을 경우 실패처리', async () => {
+      usersRepository.findOneOrFail.mockRejectedValue(new Error);
+      const result = await service.findById(1)
+      expect(result).toEqual({ok: false, error: '사용자를 찾을 수 없습니다.'})
+    })
+  });
+  describe('editProfile', () => {
+
+    it('이메일 변경하기', async () => {
+      const oldUser = {
+        email: 'test@old.com',
+        verified: true,
+      };
+      const editProfileArgs = {
+        userId: 1,
+        input: { email: 'test@new.com', }        
+      };
+      const newVerification = {
+        code: "code"
+      }
+      const newUser = {
+        email: editProfileArgs.input.email,
+        verified: false,
+      }
+
+      usersRepository.findOne.mockResolvedValue(oldUser);
+      verificationRepository.save.mockResolvedValue(newVerification);
+      verificationRepository.create.mockReturnValue(newVerification);      
+      await service.editProfile(editProfileArgs.userId, editProfileArgs.input);
+
+      expect(usersRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(usersRepository.findOne).toHaveBeenCalledWith(
+        editProfileArgs.userId,
+      );
+
+      expect(verificationRepository.create).toHaveBeenCalledWith({
+        user: newUser,
+      });
+      expect(verificationRepository.save).toHaveBeenCalledWith(newVerification);
+
+      expect(mailService.sendVerificationEmail).toHaveBeenCalledWith(
+        newUser.email,
+        newVerification.code,
+      );
+    })
+    it('패스워드 변경하기', async () => {
+      const editProfileArgs = {
+        userId: 1,
+        input: { password: 'new.password', }        
+      };
+      usersRepository.findOne.mockResolvedValue({password: 'old'})      
+      const result = await service.editProfile(editProfileArgs.userId, editProfileArgs.input);
+      expect(usersRepository.save).toHaveBeenCalledTimes(1);
+      expect(usersRepository.save).toHaveBeenCalledWith(editProfileArgs.input); 
+      expect(result).toEqual({ ok: true });
+    })
+    it('프로필을 수정할 수 없음', async () => {
+      usersRepository.findOne.mockRejectedValue(new Error());    
+      const result = await service.editProfile(1, {password:'old.password'});
+      expect(result).toEqual({ ok: false, error: '프로필을 업데이트 할 수 없습니다.'})
+    })
+  });
+
+  describe('verifyEmail', () => {
+
+    it('메일 인증처리', async () => {
+      const mockedVerification = {
+        user: {
+          verified: false,
+        },
+        id: 1
+      }
+      verificationRepository.findOne.mockResolvedValue(mockedVerification)
+
+      const result = await service.verifyEmail('')
+      expect(verificationRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(verificationRepository.findOne).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.any(Object),
+      );
+      expect(usersRepository.save).toHaveBeenCalledTimes(1);
+      expect(usersRepository.save).toHaveBeenCalledWith({verified: true});
+
+      expect(verificationRepository.delete).toHaveBeenCalledTimes(1);
+      expect(verificationRepository.delete).toHaveBeenCalledWith(
+        mockedVerification.id
+      );
+      expect(result).toEqual({ok:true});
+    });
+    it('인증 실패처리', async () => {
+      verificationRepository.findOne.mockResolvedValue(undefined);
+      const result = await service.verifyEmail('');
+      expect(result).toEqual({ ok: false, error: '인증정보를 찾을 수 없습니다.'});
+    });
+    it('예외적인 실패처리', async () => {
+      verificationRepository.findOne.mockRejectedValue(new Error());
+      const result = await service.verifyEmail('');
+      expect(result).toEqual ({ ok: false, error: '인증에 실패하였습니다.'});
+    })
+  });
 
 })

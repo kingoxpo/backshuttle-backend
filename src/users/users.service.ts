@@ -88,13 +88,12 @@ export class UserService {
 
   async findById(id: number): Promise<UserProfileOutput> {
     try {
-      const user = await this.users.findOne({ id });
-      if (user) {
-        return {
-          ok: true,
-          user: user,
-        };
-      }
+      const user = await this.users.findOneOrFail({ id });
+      return {
+        ok: true,
+        user: user,
+      };
+
     } catch (error) {
       return {
         ok: false,
@@ -104,8 +103,10 @@ export class UserService {
   }
 
   async editProfile(
-    userId:number,
-    {email, password}: EditProfileInput,
+    userId:number,{
+      email,
+      password,
+    }: EditProfileInput,
   ): Promise<EditProfileOutput> {
     try {
       const user = await this.users.findOne(userId);
@@ -141,9 +142,9 @@ export class UserService {
         await this.verification.delete(verification.id);
         return { ok: true };
       }
-      return { ok: false, error: '인증에 실패하였습니다.' };
+      return { ok: false, error: '인증정보를 찾을 수 없습니다.' };
     } catch (error) {
-      return { ok:false, error };
+      return { ok:false, error: '인증에 실패하였습니다.' };
     }
   }
 }
