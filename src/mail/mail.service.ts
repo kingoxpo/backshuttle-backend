@@ -13,8 +13,8 @@ export class MailService {
     async sendEmail(
       subject: string,
       template: string,
-      emailVars: EmailVar[],
-      ) {
+      emailVars: EmailVar[]): Promise<boolean>
+      {
 
       const form = new FormData();
       form.append("from", `Welcome Backshuttle <backshuttle@${this.options.domain}>`)
@@ -23,8 +23,8 @@ export class MailService {
       form.append("template", template);
       emailVars.forEach(eVar => form.append(`v:${eVar.key}`, eVar.value))
       try {
-        await got(`https://api.mailgun.net/v3/${this.options.domain}/messages`, {
-          method: 'POST',
+        await got.post(`https://api.mailgun.net/v3/${this.options.domain}/messages`, 
+        {
           headers: {
             "Authorization": `Basic ${Buffer.from(
               `api:${this.options.apikey}`,
@@ -32,8 +32,9 @@ export class MailService {
           },
           body: form,
         });
+        return true;
       } catch (error) {
-        console.log(error);
+        return false;
       } 
     }
 

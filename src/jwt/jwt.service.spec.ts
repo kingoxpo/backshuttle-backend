@@ -26,11 +26,11 @@ describe('JwtService', () => {
       ],
     }).compile();
     service = module.get<JwtService>(JwtService);
-  })
+  });
 
   it('it should be defined', () => {
     expect(service).toBeDefined();
-  })
+  });
 
   describe('sign', () => {
     it('사인된 토큰을 리턴함', () => {
@@ -39,8 +39,8 @@ describe('JwtService', () => {
       expect(typeof token).toBe('string');
       expect(jwt.sign).toHaveBeenCalledTimes(1);
       expect(jwt.sign).toHaveBeenLastCalledWith({id:ID}, TEST_KEY);
-    }) 
-  })
+    });
+  });
   describe('verify', () => {
     it('디코딩된 토큰을 리턴함', () => {
       const TOKEN = "TOKEN"
@@ -48,6 +48,6 @@ describe('JwtService', () => {
       expect(decodedToken).toEqual({id:USER_ID});
       expect(jwt.verify).toHaveBeenCalledTimes(1);
       expect(jwt.verify).toHaveBeenCalledWith(TOKEN, TEST_KEY);
-    })
+    });
   });
-})
+});
