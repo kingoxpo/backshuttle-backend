@@ -17,7 +17,7 @@ describe('MailService', () => {
         useValue: {
           apikey: 'test_apikey',
           domain: 'test_domain',
-          fromEamil: 'test_fromEmail',
+          fromEmail: 'test_fromEmail',
         },
       }],
     }).compile();
@@ -28,10 +28,26 @@ describe('MailService', () => {
     expect(service).toBeDefined();
   })
 
-  describe('sendEmail', () => {});
-  describe('sendVerificationEmail', () => {
-  
+  describe('sendEmail', () => {
+    it('sendEmail 호출처리', () => {
+      const sendVerificationEmailArgs ={
+        email: 'email',
+        code: 'code',
+      }
+      jest.spyOn(service, 'sendEmail').mockImplementation(async () => {})
+      service.sendVerificationEmail(
+        sendVerificationEmailArgs.email,
+        sendVerificationEmailArgs.code,
+      )
+      expect(service.sendEmail).toHaveBeenCalledTimes(1);
+      expect(service.sendEmail).toHaveBeenCalledWith(
+        'Verify Your Email',
+        'verify',
+        [
+          {'key': 'code', 'value': sendVerificationEmailArgs.code},
+          {'key': 'username', 'value': sendVerificationEmailArgs.email},
+        ]
+      )
+    })
   })
-
-
 })

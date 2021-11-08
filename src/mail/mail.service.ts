@@ -10,16 +10,15 @@ export class MailService {
     @Inject(CONFIG_OPTIONS) private readonly options: MailModuleOptions,
     ) {}
 
-    private async sendEmail(
+    async sendEmail(
       subject: string,
       template: string,
-      to : string,
       emailVars: EmailVar[],
       ) {
 
       const form = new FormData();
       form.append("from", `Welcome Backshuttle <backshuttle@${this.options.domain}>`)
-      form.append("to", to);
+      form.append("to", 'kingoxpo@gmail.com');
       form.append("subject", subject);
       form.append("template", template);
       emailVars.forEach(eVar => form.append(`v:${eVar.key}`, eVar.value))
@@ -39,9 +38,9 @@ export class MailService {
     }
 
   sendVerificationEmail(email:string, code:string) {
-    this.sendEmail("Verify Your Email", "verify" , email, [
-      {"key": 'code', "value": code},
-      {"key": 'username', "value": email},
+    this.sendEmail('Verify Your Email', 'verify', [
+      {'key': 'code', 'value': code},
+      {'key': 'username', 'value': email},
     ])
   }
 }
