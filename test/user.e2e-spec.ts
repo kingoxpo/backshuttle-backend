@@ -3,25 +3,25 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { getConnection, Repository } from 'typeorm';
-import { User } from 'src/users/entities/user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { User } from 'src/users/entities/user.entity';
 
 jest.mock('got', () => {
   return {
     post: jest.fn(),
-  }
-})
+  };
+});
 
 const GRAPHQL_ENDPOINT = '/graphql'
 const testUser = {
-  EMAIL: 'back@shuttle.com',
-  PASSWORD : '12345',
+  email: 'back@shuttle.com',
+  password: '12345',
 }
 
 describe('UserModule (e2e)', () => {
   let app: INestApplication;
   let userRepository: Repository<User>
-  let jwtToken: String;
+  let jwtToken: string;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -38,15 +38,16 @@ describe('UserModule (e2e)', () => {
   })
 
   describe('createAccount', () => {
-
     it('계정생성 처리', () => {
-      return request(app.getHttpServer()).post(GRAPHQL_ENDPOINT).send({
+      return request(app.getHttpServer())
+      .post(GRAPHQL_ENDPOINT)
+      .send({
         query: `
         mutation {
-          createAccount(input:{
-            email:"${testUser.EMAIL}"
-            password: "${testUser.PASSWORD}"
-            role: Client
+          createAccount(input: {
+            email:"${testUser.email}"
+            password: "${testUser.password}"
+            role: Owner
           }) {
             ok
             error
@@ -67,19 +68,21 @@ describe('UserModule (e2e)', () => {
     });
 
     it('사용중인 아이디가 이미 있으면 실패처리', () => {
-      return request(app.getHttpServer()).post(GRAPHQL_ENDPOINT).send({
+      return request(app.getHttpServer())
+      .post(GRAPHQL_ENDPOINT)
+      .send({
         query: `
         mutation {
           createAccount(input:{
-            email:"${testUser.EMAIL}"
-            password: "${testUser.PASSWORD}"
-            role: Client
+            email:"${testUser.email}"
+            password: "${testUser.password}"
+            role: Owner
           }) {
             ok
             error
           }
         }
-        `,
+      `,
       })
       .expect(200)
       .expect(res => {
@@ -90,25 +93,27 @@ describe('UserModule (e2e)', () => {
         } = res;
         expect(createAccount.ok).toBe(false)
         expect(createAccount.error).toEqual(expect.any(String))
-      })
+      });
     });
   });
 
   describe('login', () => {
     it('인증성공 시 로그인성공', () => {
-      return request(app.getHttpServer()).post(GRAPHQL_ENDPOINT).send({
+      return request(app.getHttpServer())
+      .post(GRAPHQL_ENDPOINT)
+      .send({
         query: `
         mutation {
           login(input:{
-            email:"${testUser.EMAIL}"
-            password: "${testUser.PASSWORD}"            
+            email:"${testUser.email}"
+            password: "${testUser.password}"            
           }) {
             ok
             error
             token
           }
         }
-        `,
+      `,
       })
       .expect(200)
       .expect(res => {
@@ -119,25 +124,26 @@ describe('UserModule (e2e)', () => {
         } = res;
         expect(login.ok).toBe(true)
         expect(login.error).toBe(null)
-        expect(login.token).toEqual(expect.any(String))
+        expect(login.token).toEqual(expect.any(String));
         jwtToken = login.token;
-      })
-    });
-  
-    it('인증실패 시 로그인실패', () => {
-      return request(app.getHttpServer()).post(GRAPHQL_ENDPOINT).send({
+      });
+  }); 
+  it('인증실패 시 로그인실패', () => {
+    return request(app.getHttpServer())
+      .post(GRAPHQL_ENDPOINT)
+      .send({
         query: `
         mutation {
           login(input:{
-            email:"${testUser.EMAIL}"
-            password: "xxx"            
+            email:"${testUser.email}",
+            password: "xxx",
           }) {
             ok
             error
             token
           }
         }
-        `,
+      `,
       })
       .expect(200)
       .expect(res => {
@@ -149,19 +155,140 @@ describe('UserModule (e2e)', () => {
         expect(login.ok).toBe(false)
         expect(login.error).toBe('잘못된 비밀번호입니다. 다시 시도하거나 비밀번호 찾기를 클릭하여 재설정하세요.')
         expect(login.token).toBe(null)
-      })
-    })
-  })
-  describe('userProfile', () => {
-
+      });
+    });
   });
-  describe('me', () => {
 
+  describe('userProfile', () => {
+    let userId: number;
+    beforeAll(async () => {
+      const [user] = await userRepository.find()
+      userId = user.id
+    });
+    it('사용자 프로필을 봐야함', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .set('X-JWT', jwtToken)
+        .send({
+          query:`
+        {
+          userProfile(userId:${userId}){
+            error
+            ok
+            user {
+              id
+            }
+          }
+        }
+        `,
+        })
+        .expect(200)
+        .expect(res => {
+          const {
+            body: {
+              data: {
+                userProfile: {
+                ok,
+                error,
+                user: { id }
+              } 
+            },            
+          },
+        } = res;
+        expect(ok).toBe(true)
+        expect(error).toBe(null)
+        expect(id).toBe(userId)
+      })
+  })
+    it('프로필을 찾지못함', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .set('X-JWT', jwtToken)
+        .send({
+          query:`
+        {
+          userProfile(userId:2){
+            error
+            ok
+            user {
+              id
+            }
+          }
+        }
+        `,
+        })
+        .expect(200)
+        .expect(res => {
+          const {
+            body: {
+              data: {
+                userProfile: {
+                ok,
+                error,
+                user,
+              }
+            },            
+          },
+        } = res;
+        expect(ok).toBe(false)
+        expect(error).toBe("사용자를 찾을 수 없습니다.")
+        expect(user).toBe(null)
+      })
+    });
+  });
+
+  describe('me', () => {
+    it('내 프로필을 찾음', () => {
+      return request(app.getHttpServer())
+      .post(GRAPHQL_ENDPOINT)
+      .set('X-JWT', jwtToken)
+      .send({
+        query:`
+        {
+          me {
+            email
+          }
+        }
+      `,
+      })
+      .expect(200)
+      .expect(res => {
+        const {
+          body: {
+            data: {
+              me: { email },
+            },
+          },
+        } = res;
+        expect(email).toBe(testUser.email);
+      });
+    });
+    it('로그아웃 된 사용자는 허용하지 않음', () => {
+      return request(app.getHttpServer())
+      .post(GRAPHQL_ENDPOINT)
+      .send({
+        query:`
+        {
+          me {
+            email
+          }
+        }
+      `,
+      })
+      .expect(200)
+      .expect(res => {
+        console.log(res.body)
+        const {
+          body: { error },
+        } = res;
+        expect(error).toBe(undefined)
+      });
+    })
   });
   describe('verifyEmail', () => {
 
   });
   describe('editProfile', () => {
-    
+
   });
 });
