@@ -66,7 +66,6 @@ describe('UserModule (e2e)', () => {
         expect(createAccount.error).toBe(null)
       });
     });
-
     it('사용중인 아이디가 이미 있으면 실패처리', () => {
       return request(app.getHttpServer())
       .post(GRAPHQL_ENDPOINT)
@@ -198,8 +197,8 @@ describe('UserModule (e2e)', () => {
         expect(ok).toBe(true)
         expect(error).toBe(null)
         expect(id).toBe(userId)
-      })
-  })
+      });
+  });
     it('프로필을 찾지못함', () => {
       return request(app.getHttpServer())
         .post(GRAPHQL_ENDPOINT)
@@ -233,7 +232,7 @@ describe('UserModule (e2e)', () => {
         expect(ok).toBe(false)
         expect(error).toBe("사용자를 찾을 수 없습니다.")
         expect(user).toBe(null)
-      })
+      });
     });
   });
 
@@ -277,18 +276,74 @@ describe('UserModule (e2e)', () => {
       })
       .expect(200)
       .expect(res => {
-        console.log(res.body)
         const {
-          body: { error },
-        } = res;
-        expect(error).toBe(undefined)
+          body: {
+            errors: [{ message }]
+          },
+        } = res;        
+        expect(message).toBe('Forbidden resource');
       });
-    })
-  });
-  describe('verifyEmail', () => {
-
+    });
   });
   describe('editProfile', () => {
-
+    const NEW_EMAIL = 'test@mail.com'
+    it('이메일을 변경 함', () => {      
+      return request(app.getHttpServer())
+      .post(GRAPHQL_ENDPOINT)
+      .set('X-JWT', jwtToken)
+      .send({
+        query:`
+        mutation{
+          editProfile(input:{
+            email:"${NEW_EMAIL}"
+          }) {
+            ok
+            error
+          }
+        }
+      `,
+      })
+      .expect(200)
+      .expect(res => {
+        const {
+          body: {
+            data: {
+              editProfile: { ok, error },
+            },
+          },
+        } = res;
+        expect(ok).toBe(true)
+        expect(error).toBe(null)
+      });
+    });
+    it('새로운 이메일을 가짐', () => {
+      return request(app.getHttpServer())
+      .post(GRAPHQL_ENDPOINT)
+      .set('X-JWT', jwtToken)
+      .send({
+        query: `
+        {
+          me {
+            email
+          }
+        }
+      `,
+      })
+      .expect(200)
+      .expect(res => {
+        const {
+          body: {
+            data: {
+              me: {email}
+            },
+          },
+        } = res;
+        expect(email).toBe(NEW_EMAIL)
+      });
+    });
   });
+  describe('verifyEmail', () => {
+    
+  });
+
 });

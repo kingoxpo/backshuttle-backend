@@ -102,6 +102,8 @@ export class UserService {
     }
   }
 
+  
+
   async editProfile(
     userId:number,{
       email,
@@ -113,6 +115,11 @@ export class UserService {
       if(email) {
         user.email = email;
         user.verified = false;
+        this.verification.delete({
+          user: {
+            id: user.id
+          }
+        });
         const verification = await this.verification.save(
           this.verification.create({ user }),
         );
@@ -126,6 +133,7 @@ export class UserService {
         ok: true,
       };
     } catch (error) {
+      console.log(error);
       return { ok: false, error: '프로필을 업데이트 할 수 없습니다.'};
     }      
   } 
