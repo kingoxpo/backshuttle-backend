@@ -5,6 +5,7 @@ import { AppModule } from '../src/app.module';
 import { getConnection, Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
+import { Verification } from 'src/users/entities/verification.entity';
 
 jest.mock('got', () => {
   return {
@@ -20,7 +21,8 @@ const testUser = {
 
 describe('UserModule (e2e)', () => {
   let app: INestApplication;
-  let userRepository: Repository<User>
+  let userRepository: Repository<User>;
+  let verificationRepository: Repository<Verification>;
   let jwtToken: string;
 
   beforeAll(async () => {
@@ -29,14 +31,16 @@ describe('UserModule (e2e)', () => {
     }).compile();
     app = module.createNestApplication();
     userRepository = module.get<Repository<User>>(getRepositoryToken(User))
+    verificationRepository = module.get<Repository<Verification>>(
+      getRepositoryToken(Verification),
+    );
     await app.init();
   });
-
+  
   afterAll(async () => {
     await getConnection().dropDatabase()
     app.close();
   })
-
   describe('createAccount', () => {
     it('계정생성 처리', () => {
       return request(app.getHttpServer())
@@ -95,7 +99,6 @@ describe('UserModule (e2e)', () => {
       });
     });
   });
-
   describe('login', () => {
     it('인증성공 시 로그인성공', () => {
       return request(app.getHttpServer())
@@ -126,8 +129,8 @@ describe('UserModule (e2e)', () => {
         expect(login.token).toEqual(expect.any(String));
         jwtToken = login.token;
       });
-  }); 
-  it('인증실패 시 로그인실패', () => {
+    }); 
+    it('인증실패 시 로그인실패', () => {
     return request(app.getHttpServer())
       .post(GRAPHQL_ENDPOINT)
       .send({
@@ -157,7 +160,6 @@ describe('UserModule (e2e)', () => {
       });
     });
   });
-
   describe('userProfile', () => {
     let userId: number;
     beforeAll(async () => {
@@ -235,7 +237,6 @@ describe('UserModule (e2e)', () => {
       });
     });
   });
-
   describe('me', () => {
     it('내 프로필을 찾음', () => {
       return request(app.getHttpServer())
@@ -343,7 +344,67 @@ describe('UserModule (e2e)', () => {
     });
   });
   describe('verifyEmail', () => {
-    
+    let verificationCode: string;
+    beforeAll(async () => {
+      const [verification] = await verificationRepository.find();
+      verificationCode = verification.code;
+    });
+    it('이메일 인증 함', () => {
+      return request(app.getHttpServer())
+      .post(GRAPHQL_ENDPOINT)
+      .send({
+        query:`
+        mutation{
+          verifyEmail(input:{
+            code:"${verificationCode}"
+          })  {
+            error
+            ok
+          }
+        }
+      `,
+      })
+      .expect(200)
+      .expect(res => {
+        const { 
+          body: {
+            data: {
+              verifyEmail: {ok, error},
+            }
+          }
+        } = res;
+        expect(ok).toBe(true)
+        expect(error).toBe(null)
+      })
+    })
+    it('인증코드를 찾을 수 없으면 실패처리', () => {
+      return request(app.getHttpServer())
+      .post(GRAPHQL_ENDPOINT)
+      .send({
+        query:`
+        mutation{
+          verifyEmail(input:{
+            code:"xxx"
+          })  {
+            error
+            ok
+          }
+        }
+      `,
+      })
+      .expect(200)
+      .expect(res => {
+        const { 
+          body: {
+            data: {
+              verifyEmail: {ok, error},
+            }
+          }
+        } = res;
+        expect(ok).toBe(false)
+        expect(error).toBe('인증정보를 찾을 수 없습니다.')
+      })
+    })
   });
 
 });
