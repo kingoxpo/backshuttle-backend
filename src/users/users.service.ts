@@ -133,7 +133,6 @@ export class UserService {
         ok: true,
       };
     } catch (error) {
-      console.log(error);
       return { ok: false, error: '프로필을 업데이트 할 수 없습니다.'};
     }      
   } 
@@ -142,7 +141,7 @@ export class UserService {
     try {
       const verification = await this.verification.findOne(
         { code },
-        { relations: ["user"]},
+        { relations: ['user']},
       );
       if(verification) {
         verification.user.verified = true;

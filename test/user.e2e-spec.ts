@@ -25,6 +25,10 @@ describe('UserModule (e2e)', () => {
   let verificationRepository: Repository<Verification>;
   let jwtToken: string;
 
+  const baseTest = () => request(app.getHttpServer()).post(GRAPHQL_ENDPOINT);
+  const publicTest = (query: string) => baseTest().send({ query });
+  const privateTest = (query: string) => baseTest().set('X-JWT', jwtToken).send({ query });
+
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -36,17 +40,14 @@ describe('UserModule (e2e)', () => {
     );
     await app.init();
   });
-  
+
   afterAll(async () => {
     await getConnection().dropDatabase()
     app.close();
   })
   describe('createAccount', () => {
     it('계정생성 처리', () => {
-      return request(app.getHttpServer())
-      .post(GRAPHQL_ENDPOINT)
-      .send({
-        query: `
+      return publicTest(`
         mutation {
           createAccount(input: {
             email:"${testUser.email}"
@@ -57,24 +58,20 @@ describe('UserModule (e2e)', () => {
             error
           }
         }
-        `,
-      })
-      .expect(200)
-      .expect(res => {
-        const {
-          body: {
-            data: { createAccount }
-          },
-        } = res;
-        expect(createAccount.ok).toBe(true)
-        expect(createAccount.error).toBe(null)
+        `)
+        .expect(200)
+        .expect(res => {
+          const {
+            body: {
+              data: { createAccount }
+            },
+          } = res;
+          expect(createAccount.ok).toBe(true)
+          expect(createAccount.error).toBe(null)
+        });
       });
-    });
     it('사용중인 아이디가 이미 있으면 실패처리', () => {
-      return request(app.getHttpServer())
-      .post(GRAPHQL_ENDPOINT)
-      .send({
-        query: `
+      return publicTest(`
         mutation {
           createAccount(input:{
             email:"${testUser.email}"
@@ -85,8 +82,7 @@ describe('UserModule (e2e)', () => {
             error
           }
         }
-      `,
-      })
+      `)
       .expect(200)
       .expect(res => {
         const {
@@ -101,10 +97,7 @@ describe('UserModule (e2e)', () => {
   });
   describe('login', () => {
     it('인증성공 시 로그인성공', () => {
-      return request(app.getHttpServer())
-      .post(GRAPHQL_ENDPOINT)
-      .send({
-        query: `
+      return publicTest(`
         mutation {
           login(input:{
             email:"${testUser.email}"
@@ -115,8 +108,7 @@ describe('UserModule (e2e)', () => {
             token
           }
         }
-      `,
-      })
+      `)
       .expect(200)
       .expect(res => {
         const {
@@ -131,10 +123,7 @@ describe('UserModule (e2e)', () => {
       });
     }); 
     it('인증실패 시 로그인실패', () => {
-    return request(app.getHttpServer())
-      .post(GRAPHQL_ENDPOINT)
-      .send({
-        query: `
+    return publicTest(`
         mutation {
           login(input:{
             email:"${testUser.email}",
@@ -145,8 +134,7 @@ describe('UserModule (e2e)', () => {
             token
           }
         }
-      `,
-      })
+      `)
       .expect(200)
       .expect(res => {
         const {
@@ -167,11 +155,7 @@ describe('UserModule (e2e)', () => {
       userId = user.id
     });
     it('사용자 프로필을 봐야함', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .set('X-JWT', jwtToken)
-        .send({
-          query:`
+      return privateTest(`
         {
           userProfile(userId:${userId}){
             error
@@ -181,8 +165,8 @@ describe('UserModule (e2e)', () => {
             }
           }
         }
-        `,
-        })
+        `)
+        
         .expect(200)
         .expect(res => {
           const {
@@ -202,11 +186,7 @@ describe('UserModule (e2e)', () => {
       });
   });
     it('프로필을 찾지못함', () => {
-      return request(app.getHttpServer())
-        .post(GRAPHQL_ENDPOINT)
-        .set('X-JWT', jwtToken)
-        .send({
-          query:`
+      return privateTest(`
         {
           userProfile(userId:2){
             error
@@ -216,8 +196,7 @@ describe('UserModule (e2e)', () => {
             }
           }
         }
-        `,
-        })
+        `)        
         .expect(200)
         .expect(res => {
           const {
@@ -239,18 +218,13 @@ describe('UserModule (e2e)', () => {
   });
   describe('me', () => {
     it('내 프로필을 찾음', () => {
-      return request(app.getHttpServer())
-      .post(GRAPHQL_ENDPOINT)
-      .set('X-JWT', jwtToken)
-      .send({
-        query:`
+      return privateTest(`
         {
           me {
             email
           }
         }
-      `,
-      })
+      `)      
       .expect(200)
       .expect(res => {
         const {
@@ -264,17 +238,13 @@ describe('UserModule (e2e)', () => {
       });
     });
     it('로그아웃 된 사용자는 허용하지 않음', () => {
-      return request(app.getHttpServer())
-      .post(GRAPHQL_ENDPOINT)
-      .send({
-        query:`
+      return publicTest(`
         {
           me {
             email
           }
         }
-      `,
-      })
+      `)
       .expect(200)
       .expect(res => {
         const {
@@ -289,11 +259,7 @@ describe('UserModule (e2e)', () => {
   describe('editProfile', () => {
     const NEW_EMAIL = 'test@mail.com'
     it('이메일을 변경 함', () => {      
-      return request(app.getHttpServer())
-      .post(GRAPHQL_ENDPOINT)
-      .set('X-JWT', jwtToken)
-      .send({
-        query:`
+      return privateTest(`
         mutation{
           editProfile(input:{
             email:"${NEW_EMAIL}"
@@ -302,8 +268,7 @@ describe('UserModule (e2e)', () => {
             error
           }
         }
-      `,
-      })
+      `)
       .expect(200)
       .expect(res => {
         const {
@@ -318,18 +283,13 @@ describe('UserModule (e2e)', () => {
       });
     });
     it('새로운 이메일을 가짐', () => {
-      return request(app.getHttpServer())
-      .post(GRAPHQL_ENDPOINT)
-      .set('X-JWT', jwtToken)
-      .send({
-        query: `
+      return privateTest(`
         {
           me {
             email
           }
         }
-      `,
-      })
+      `)
       .expect(200)
       .expect(res => {
         const {
@@ -350,10 +310,7 @@ describe('UserModule (e2e)', () => {
       verificationCode = verification.code;
     });
     it('이메일 인증 함', () => {
-      return request(app.getHttpServer())
-      .post(GRAPHQL_ENDPOINT)
-      .send({
-        query:`
+      return publicTest(`
         mutation{
           verifyEmail(input:{
             code:"${verificationCode}"
@@ -362,8 +319,7 @@ describe('UserModule (e2e)', () => {
             ok
           }
         }
-      `,
-      })
+      `)
       .expect(200)
       .expect(res => {
         const { 
@@ -378,10 +334,7 @@ describe('UserModule (e2e)', () => {
       })
     })
     it('인증코드를 찾을 수 없으면 실패처리', () => {
-      return request(app.getHttpServer())
-      .post(GRAPHQL_ENDPOINT)
-      .send({
-        query:`
+      return publicTest(`
         mutation{
           verifyEmail(input:{
             code:"xxx"
@@ -390,8 +343,7 @@ describe('UserModule (e2e)', () => {
             ok
           }
         }
-      `,
-      })
+      `)
       .expect(200)
       .expect(res => {
         const { 
