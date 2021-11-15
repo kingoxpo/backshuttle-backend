@@ -19,3 +19,10 @@ The Backend of BackShuttle
 - See Profile
 - Edit Profile
 - Verify Email
+
+## Store Model
+
+- name
+- category
+- address
+- coverImage

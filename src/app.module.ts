@@ -11,6 +11,8 @@ import { JwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
+import { Category } from './store/entities/category.entity';
+import { Store } from './store/entities/store.entity';
 
 console.log(Joi);
 
@@ -44,7 +46,7 @@ console.log(Joi);
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== "prod",
       logging: process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
-      entities: [User, Verification],
+      entities: [User, Verification, Category, Store],
     }),
     GraphQLModule.forRoot({
     autoSchemaFile: true,
