@@ -13,6 +13,7 @@ import { Verification } from './users/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
 import { Category } from './store/entities/category.entity';
 import { Store } from './store/entities/store.entity';
+import { StoreModule } from './store/store.module';
 
 console.log(Joi);
 
@@ -53,6 +54,7 @@ console.log(Joi);
       context: ({req}) => ({ user: req['user'] }),
     }),
     UsersModule,
+    StoreModule,
     JwtModule.forRoot({
       privateKey: process.env.PRIVATE_KEY,
     }),

@@ -5,7 +5,7 @@ import { Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColum
 import { Store } from "./store.entity";
 
 
-@InputType({ isAbstract:true })
+@InputType("CategoryInputType",{ isAbstract:true })
 @ObjectType()
 @Entity()
 export class Category extends CoreEntity {
@@ -22,8 +22,10 @@ export class Category extends CoreEntity {
     coverImg: string;
 
     @Field(type => [Store])
-    @OneToMany(type => Store, store => store.category)
+    @OneToMany(
+      type => Store,
+      store => store.category,
+    )
     stores: Store[];    
-
 
 }
