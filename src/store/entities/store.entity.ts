@@ -17,8 +17,8 @@ export class Store extends CoreEntity {
     @Length(3)
     name: string;
 
-    @Field(type => String)
-    @Column()
+    @Field(type => String, { nullable: true })
+    @Column({ nullable: true })
     @IsString()
     coverImg: string;
 
