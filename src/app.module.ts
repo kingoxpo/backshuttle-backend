@@ -53,6 +53,7 @@ console.log(Joi);
     autoSchemaFile: true,
       context: ({req}) => ({ user: req['user'] }),
     }),
+    AuthModule,
     UsersModule,
     StoreModule,
     JwtModule.forRoot({
