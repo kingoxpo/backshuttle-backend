@@ -38,6 +38,7 @@ export class Store extends CoreEntity {
     @ManyToOne(
       type => User,
       user => user.stores,
+      {onDelete: 'CASCADE'}
     )
     owner: User;
 }

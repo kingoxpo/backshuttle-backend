@@ -6,7 +6,11 @@ import { InternalServerErrorException } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsEnum, IsString } from 'class-validator';
 import { Store } from 'src/store/entities/store.entity';
 
-enum UserRole {Owner, Client, Delivery,}
+export enum UserRole {
+  Owner = 'Owner',
+  Client = 'Client',
+  Delivery = 'Delivery',
+}
 registerEnumType(UserRole, {name:"UserRole"})
 
 @InputType('UserInputType',{ isAbstract:true })
