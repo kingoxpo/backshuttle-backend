@@ -10,8 +10,9 @@ import { StoreService } from "./store.service";
 @Resolver(of => Store)
 export class StoreResolver{
   constructor(private readonly storeService: StoreService) {}
-  @Role(['Owner'])
+  
   @Mutation(returns => CreateStoreOutput)
+  @Role(['Owner'])  
   async createStore(
     @AuthUser() authUser: User,
     @Args('input') createStoreInput: CreateStoreInput,
