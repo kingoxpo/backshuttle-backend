@@ -26,3 +26,18 @@ The Backend of BackShuttle
 - category
 - address
 - coverImage
+
+## Manage Store
+
+- Edit Store *only auth Owner
+- Delete Store *only auth Owner
+
+- See Categories
+- See Store by Category (pagination)
+- See Store (pagination)
+- See Store
+
+
+- Create Product
+- Edit Product
+- Delete Product

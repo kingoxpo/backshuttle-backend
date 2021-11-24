@@ -1,8 +1,8 @@
 import { Field, InputType, ObjectType } from "@nestjs/graphql";
-import { IsBoolean, IsOptional, IsString, Length } from "class-validator";
+import { IsString, Length } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
 import { User } from "src/users/entities/user.entity";
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, RelationId } from "typeorm";
 import { Category } from "./category.entity";
 
 
@@ -41,4 +41,8 @@ export class Store extends CoreEntity {
       {onDelete: 'CASCADE'}
     )
     owner: User;
+
+    @RelationId((store: Store) => store.owner)
+    ownerId: number;
+
 }
