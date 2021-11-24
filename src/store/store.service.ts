@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/users/entities/user.entity";
 import { Repository } from "typeorm";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
+import { DeleteStoreInput, DeleteStoreOutput } from "./dtos/delete-store.dto";
 import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
 import { Category } from "./entities/category.entity";
 import { Store } from "./entities/store.entity";
@@ -17,22 +18,6 @@ export class StoreService {
     private readonly stores: Repository<Store>,
     private readonly categories: CategoryRepository,
     ) {}
-
-
-    async getOrCreate(
-      name:string
-    ): Promise<Category> {
-      const categoryName = name.trim().toLowerCase();
-      const categorySlug = categoryName.replace(/ /g, '-');
-      let category = await this.categories.findOne({ slug: categorySlug });
-      if (!category) {
-        category = await this.categories.save(
-          this.categories.create({ slug: categorySlug, name: categoryName })
-        );
-      }
-      return category;
-    }
-
 
     async createStore(
       owner: User,
@@ -98,6 +83,38 @@ export class StoreService {
       return {
         ok:false,
         error: '스토어를 수정할 수 없습니다.'
+      };
+    };
+  };
+
+  async deleteStore(
+    owner: User,
+    {storeId}: DeleteStoreInput,
+  ): Promise<DeleteStoreOutput> {
+    try {
+      const store = await this.stores.findOne(
+        storeId,
+      );
+      if (!store) {
+        return {
+          ok: false,
+          error: '스토어를 찾을 수 없습니다.'
+        };
+      }  
+      if (owner.id !== store.ownerId) {
+        return {
+          ok:false,
+          error: '내 스토어만 삭제할 수 있습니다.'
+        };
+      }
+      await this.stores.delete(storeId)
+      return {
+        ok: true,
+      };
+    } catch {
+      return {
+        ok:false,
+        error: '스토어를 삭제할 수 없습니다.'
       };
     };
   };

@@ -4,6 +4,7 @@ import { AuthUser } from "src/auth/auth-user.decorator";
 import { Role } from "src/auth/role.decorator";
 import { User, UserRole } from "src/users/entities/user.entity";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
+import { DeleteStoreInput, DeleteStoreOutput } from "./dtos/delete-store.dto";
 import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
 import { Store } from "./entities/store.entity";
 import { StoreService } from "./store.service";
@@ -27,9 +28,18 @@ export class StoreResolver{
   @Mutation(returns => EditStoreOutput)
   @Role(['Owner'])
   editStore(    
-    @AuthUser() authUser: User,
+    @AuthUser() owner: User,
     @Args('input') editStoreInput: EditStoreInput,
-  ): EditStoreOutput{
-    return { ok: true }
+  ): Promise<EditStoreOutput> {
+    return this.storeService.editStore(owner, editStoreInput);
+  };
+
+  @Mutation(returns => DeleteStoreOutput)
+  @Role(['Owner'])
+  deleteStore(    
+    @AuthUser() owner: User,
+    @Args('input') deleteStoreInput: DeleteStoreInput,
+  ): Promise<DeleteStoreOutput> {
+    return this.storeService.deleteStore(owner, deleteStoreInput);
   };
 }
