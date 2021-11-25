@@ -1,21 +1,22 @@
-import { Int, Query, ResolveField, Resolver } from "@nestjs/graphql";
+import { Int, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 import { AllCategoriesOutput } from "src/store/dtos/all-categories.dto";
 import { Category } from "src/store/entities/category.entity";
-import { StoreService } from "src/store/store.service";
+import { CategoryService } from "./categories.service";
 
 @Resolver(of => Category)
 export class CategoryResolver{
-  constructor(private readonly storeService: StoreService) {}
+  constructor(private readonly categoryService: CategoryService) {}
 
   @ResolveField(type => Int)
-  storeCount(): number {
-    return 1;
+  storeCount(@Parent() category: Category): Promise<number> {
+    console.log(category)
+    return this.categoryService.countStore(category);
   }
 
-  @Query(type => AllCategoriesOutput)
+  @Query(type => AllCategoriesOutput)  
 
-  allCategories(): Promise<AllCategoriesOutput>{
-    return this.storeService.allCategories();
+  allCategories(): Promise<AllCategoriesOutput> {
+    return this.categoryService.allCategories();
   }
   
 }
