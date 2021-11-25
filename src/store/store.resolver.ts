@@ -1,4 +1,4 @@
-import { Args, Int, Mutation, Query, ResolveField, Resolver } from "@nestjs/graphql";
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from "@nestjs/graphql";
 import { AuthUser } from "src/auth/auth-user.decorator";
 import { Role } from "src/auth/role.decorator";
 import { User } from "src/users/entities/user.entity";
@@ -50,13 +50,13 @@ export class CategoryResolver{
   constructor(private readonly storeService: StoreService) {}
 
   @ResolveField(type => Int)
-  storeCount(): number {
-    return 1;
+  storeCount(@Parent() category: Category): Promise<number> {
+    console.log(category)
+    return this.storeService.countStore(category);
   }
 
   @Query(type => AllCategoriesOutput)
-  allCategories(): Promise<AllCategoriesOutput>{
+  allCategories(): Promise<AllCategoriesOutput> {
     return this.storeService.allCategories();
   }
-  
 }

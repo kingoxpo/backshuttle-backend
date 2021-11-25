@@ -135,5 +135,8 @@ export class StoreService {
       }
     }
   }
+  countStore(category: Category) {
+    return this.stores.count({category});
+  }
 };
 
