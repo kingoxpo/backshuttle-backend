@@ -44,19 +44,3 @@ export class StoreResolver{
     return this.storeService.deleteStore(owner, deleteStoreInput);
   };
 }
-
-@Resolver(of => Category)
-export class CategoryResolver{
-  constructor(private readonly storeService: StoreService) {}
-
-  @ResolveField(type => Int)
-  storeCount(): number {
-    return 1;
-  }
-
-  @Query(type => AllCategoriesOutput)
-  allCategories(): Promise<AllCategoriesOutput>{
-    return this.storeService.allCategories();
-  }
-  
-}
