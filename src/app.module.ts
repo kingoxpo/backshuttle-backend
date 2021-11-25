@@ -14,6 +14,7 @@ import { MailModule } from './mail/mail.module';
 import { Category } from './store/entities/category.entity';
 import { Store } from './store/entities/store.entity';
 import { StoreModule } from './store/store.module';
+import { CategoriesModule } from './categories/categories.module';
 
 console.log(Joi);
 
@@ -56,6 +57,7 @@ console.log(Joi);
     AuthModule,
     UsersModule,
     StoreModule,
+    CategoriesModule,
     JwtModule.forRoot({
       privateKey: process.env.PRIVATE_KEY,
     }),
@@ -65,6 +67,7 @@ console.log(Joi);
       fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
     AuthModule,
+    CategoriesModule,
   ],
   controllers: [],
   providers: [],
