@@ -2,7 +2,7 @@ import { Args, Int, Mutation, Query, ResolveField, Resolver } from "@nestjs/grap
 import { AuthUser } from "src/auth/auth-user.decorator";
 import { Role } from "src/auth/role.decorator";
 import { User } from "src/users/entities/user.entity";
-import { AllCategoriesOutput } from "./dtos/all-categories.dto";
+import { AllCategoriesOutput } from "src/categories/dtos/all-categories.dto";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
 import { DeleteStoreInput, DeleteStoreOutput } from "./dtos/delete-store.dto";
 import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
