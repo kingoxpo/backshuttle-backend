@@ -14,7 +14,7 @@ export class Store extends CoreEntity {
     @Field(type => String)
     @Column()
     @IsString()
-    @Length(3)
+    @Length(2)
     name: string;
 
     @Field(type => String, { nullable: true })
