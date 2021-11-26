@@ -35,6 +35,7 @@ The Backend of BackShuttle
 - See Categories
 - See Store by Category (pagination)
 - See Store (pagination)
+- Search Store
 - See Store
 
 

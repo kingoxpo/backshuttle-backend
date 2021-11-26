@@ -10,6 +10,7 @@ import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
 import { Category } from "./entities/category.entity";
 import { Store } from "./entities/store.entity";
 import { CategoryRepository } from "src/store/repositories/category.repository";
+import { StoresInput, StoresOutput } from "./dtos/stores.dto";
 
 
 
@@ -153,20 +154,41 @@ export class StoreService {
         where: {
           category,
         },
-        take: 25,
-        skip: (page - 1) * 25,
+        take: 10,
+        skip: (page - 1) * 10,
       });
       category.stores = stores;
       const totalResult = await this.countStore(category)
       return {
         ok: true,
+        stores,
         category,
-        totalPages: Math.ceil(totalResult / 25)
+        totalPages: Math.ceil(totalResult / 10)
       }
     } catch {
       return {
         ok: false,
         error: '카테고리를 불러올 수 없습니다.',
+      }
+    }
+  }
+  
+  async allStores({ page }: StoresInput): Promise<StoresOutput> {
+    try {
+      const [stores, totalResult] = await this.stores.findAndCount({
+        take: 10,
+        skip: (page -1) * 10,
+      });
+      return {
+        ok: true,
+        results: stores,
+        totalPages: Math.ceil(totalResult / 10),
+        totalResult,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: '스토어를 불러올 수 없습니다.'
       }
     }
   }
