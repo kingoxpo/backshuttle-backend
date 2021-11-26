@@ -26,7 +26,7 @@ export class Category extends CoreEntity {
     @IsString()
     slug: string;
 
-    @Field(type => [Store])
+    @Field(type => [Store], { nullable: true })
     @OneToMany(
       type => Store,
       store => store.category,

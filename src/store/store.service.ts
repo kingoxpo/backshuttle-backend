@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/users/entities/user.entity";
 import { Repository } from "typeorm";
 import { AllCategoriesOutput } from "./dtos/all-categories.dto";
+import { CategoryInput } from "./dtos/category.dto";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
 import { DeleteStoreInput, DeleteStoreOutput } from "./dtos/delete-store.dto";
 import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
@@ -137,6 +138,27 @@ export class StoreService {
   }
   countStore(category: Category) {
     return this.stores.count({category});
+  }
+
+  async findCategoryBySlug({ slug }: CategoryInput){
+    try{
+      const category = await this.categories.findOne({ slug }, {relations: ['stores']});
+      if(!category){
+        return {
+          ok: false,
+          error: '카테고리를 찾을 수 없습니다.'
+        }
+      }
+      return {
+        ok: true,
+        category,
+      }
+    } catch {
+      return {
+        ok: false,
+        error: '카테고리를 불러올 수 없습니다.',
+      }
+    }
   }
 };
 
