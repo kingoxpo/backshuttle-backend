@@ -9,7 +9,7 @@ import { DeleteStoreInput, DeleteStoreOutput } from "./dtos/delete-store.dto";
 import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
 import { Category } from "./entities/category.entity";
 import { Store } from "./entities/store.entity";
-import { CategoryRepository } from "./repositories/category.repository";
+import { CategoryRepository } from "src/store/repositories/category.repository";
 
 
 
@@ -140,18 +140,28 @@ export class StoreService {
     return this.stores.count({category});
   }
 
-  async findCategoryBySlug({ slug }: CategoryInput){
+  async findCategoryBySlug({ slug, page }: CategoryInput){
     try{
-      const category = await this.categories.findOne({ slug }, {relations: ['stores']});
+      const category = await this.categories.findOne({ slug });
       if(!category){
         return {
           ok: false,
           error: '카테고리를 찾을 수 없습니다.'
-        }
+        };
       }
+      const stores = await this.stores.find({
+        where: {
+          category,
+        },
+        take: 25,
+        skip: (page - 1) * 25,
+      });
+      category.stores = stores;
+      const totalResult = await this.countStore(category)
       return {
         ok: true,
         category,
+        totalPages: Math.ceil(totalResult / 25)
       }
     } catch {
       return {
