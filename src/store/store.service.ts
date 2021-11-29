@@ -5,7 +5,7 @@ import { ILike, Like } from "typeorm";
 import { AllCategoriesOutput } from "./dtos/all-categories.dto";
 import { CategoryInput, CategoryOutput } from "./dtos/category.dto";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
-import { DeleteStoreInput, DeleteStoreOutput } from "./dtos/delete-store.dto";
+import { DeleteStoreOutput } from "./dtos/delete-store.dto";
 import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
 import { Category } from "./entities/category.entity";
 import { Store } from "./entities/store.entity";
@@ -209,15 +209,15 @@ export class StoreService {
   }: SearchStoreInput): Promise<SearchStoreOutput> {
     try {
       return await this.stores.findAndCountPagination(page, {
-        name: ILike(`%${query}%`)
-      });
+        name: Like(`%${query}%`)
+      });      
     } catch {
+      console.log(query, page, '실패결과')
       return {
         ok: false,
         error: "스토어를 검색할 수 없습니다.",
       }
     }
   }  
-
 };
 

@@ -32,5 +32,6 @@ export class Category extends CoreEntity {
       store => store.category,
     )
     stores: Store[];    
+  category: import("c:/Users/김순복/backshuttle-backend/src/store/dtos/repository-store.dto").RepositoryStoreOutput;
 
 }

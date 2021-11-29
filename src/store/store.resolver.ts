@@ -49,6 +49,7 @@ export class StoreResolver{
   }
 
   @Query(returns => StoresOutput)
+  @Role(['Any'])
   stores(
     @Args('input') storesInput: StoresInput,
   ): Promise<StoresOutput> {
@@ -56,6 +57,7 @@ export class StoreResolver{
   }
 
   @Query(returns => StoreOutput)
+  @Role(['Any'])
   store(
     @Args('input') storeInput: StoreInput,
   ): Promise<StoreOutput> {
@@ -63,6 +65,7 @@ export class StoreResolver{
   }
 
   @Query(returns => SearchStoreOutput)
+  @Role(['Any'])
   searchStore(
     @Args('input') serchStoreInput: SearchStoreInput,
   ): Promise<SearchStoreOutput> {
