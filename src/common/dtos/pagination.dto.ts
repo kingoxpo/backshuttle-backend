@@ -14,5 +14,5 @@ export class PaginationOutput extends CoreOutput {
   totalPages?: number;
 
   @Field(type => Int, { nullable: true })
-  totalResult?: number;
+  totalResults?: number;
 }

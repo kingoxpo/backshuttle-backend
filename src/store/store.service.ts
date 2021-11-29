@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/users/entities/user.entity";
-import { Like, Repository } from "typeorm";
+import { ILike, Like } from "typeorm";
 import { AllCategoriesOutput } from "./dtos/all-categories.dto";
-import { CategoryInput } from "./dtos/category.dto";
+import { CategoryInput, CategoryOutput } from "./dtos/category.dto";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
 import { DeleteStoreInput, DeleteStoreOutput } from "./dtos/delete-store.dto";
 import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
@@ -13,6 +13,7 @@ import { CategoryRepository } from "src/store/repositories/category.repository";
 import { StoresInput, StoresOutput } from "./dtos/stores.dto";
 import { StoreInput, StoreOutput } from "./dtos/store.dto";
 import { SearchStoreInput, SearchStoreOutput } from "./dtos/search-store.dto";
+import { StoreRepository } from "./repositories/store.repository";
 
 
 
@@ -20,7 +21,7 @@ import { SearchStoreInput, SearchStoreOutput } from "./dtos/search-store.dto";
 export class StoreService {
   constructor(
     @InjectRepository(Store)
-    private readonly stores: Repository<Store>,
+    private readonly stores: StoreRepository,
     private readonly categories: CategoryRepository,
     ) {}
 
@@ -53,20 +54,14 @@ export class StoreService {
     editStoreInput: EditStoreInput,
   ): Promise<EditStoreOutput> {
     try {
-      const store = await this.stores.findOne(
+      const checkStore = await this.stores.checkStore(
+        owner.id,
         editStoreInput.storeId,
       );
-      if (!store) {
+      if (!checkStore.ok) {
         return {
-          ok: false,
-          error: '스토어를 찾을 수 없습니다.'
-        };
-      }  
-      if (owner.id !== store.ownerId) {
-        return {
-          ok:false,
-          error: '내 스토어만 수정할 수 있습니다.'
-        };
+          ...checkStore,
+        }
       }
       let category: Category = null;
       if(editStoreInput.categoryName){        
@@ -93,23 +88,17 @@ export class StoreService {
   };
 
   async deleteStore(
-    owner: User,
-    {storeId}: DeleteStoreInput,
+    owner,
+    { storeId },
   ): Promise<DeleteStoreOutput> {
     try {
-      const store = await this.stores.findOne(
+      const checkStore = await this.stores.checkStore(
+        owner.id,
         storeId,
       );
-      if (!store) {
+      if (!checkStore.ok) {
         return {
-          ok: false,
-          error: '스토어를 찾을 수 없습니다.'
-        };
-      }  
-      if (owner.id !== store.ownerId) {
-        return {
-          ok:false,
-          error: '내 스토어만 삭제할 수 있습니다.'
+          ...checkStore,         
         };
       }
       await this.stores.delete(storeId)
@@ -131,7 +120,6 @@ export class StoreService {
         ok: true,
         categories,
       }
-
     } catch {
       return {
         ok: false,
@@ -139,11 +127,15 @@ export class StoreService {
       }
     }
   }
-  countStore(category: Category) {
-    return this.stores.count({category});
+
+  countStores(category: Category): Promise<number> {
+    return this.stores.count({ category });
   }
 
-  async findCategoryBySlug({ slug, page }: CategoryInput){
+  async findCategoryBySlug({
+    slug,
+    page,
+   }: CategoryInput): Promise<CategoryOutput>{
     try{
       const category = await this.categories.findOne({ slug });
       if(!category){
@@ -152,20 +144,20 @@ export class StoreService {
           error: '카테고리를 찾을 수 없습니다.'
         };
       }
-      const stores = await this.stores.find({
-        where: {
-          category,
-        },
-        take: 10,
-        skip: (page - 1) * 10,
+      const { stores } = await this.stores.findPagination(page, {  
+       category,
       });
+
       category.stores = stores;
-      const totalResult = await this.countStore(category)
+
+      const totalResults = await this.countStores(category)
+
       return {
-        ok: true,
+        ok: true,        
         stores,
         category,
-        totalPages: Math.ceil(totalResult / 10)
+        totalPages: Math.ceil(totalResults / 10),
+        totalResults,
       }
     } catch {
       return {
@@ -174,24 +166,15 @@ export class StoreService {
       }
     }
   }
-  
+
   async allStores({ page }: StoresInput): Promise<StoresOutput> {
     try {
-      const [stores, totalResult] = await this.stores.findAndCount({
-        take: 10,
-        skip: (page -1) * 10,
-      });
-      return {
-        ok: true,
-        results: stores,
-        totalPages: Math.ceil(totalResult / 10),
-        totalResult,
-      };
+      return await this.stores.findAndCountPagination(page);      
     } catch {
       return {
         ok: false,
         error: '스토어를 불러올 수 없습니다.'
-      }
+      };
     }
   }
 
@@ -225,19 +208,9 @@ export class StoreService {
     page,
   }: SearchStoreInput): Promise<SearchStoreOutput> {
     try {
-      const [stores, totalResult] = await this.stores.findAndCount({
-        where: {
-          name: Like(`%${query}%`)
-        },          
-        take: 10,
-        skip: (page -1) * 10,
+      return await this.stores.findAndCountPagination(page, {
+        name: ILike(`%${query}%`)
       });
-      return {
-        ok: true,
-        stores,
-        totalResult,
-        totalPages: Math.ceil(totalResult / 10),
-      }
     } catch {
       return {
         ok: false,

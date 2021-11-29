@@ -77,7 +77,7 @@ export class CategoryResolver{
 
   @ResolveField(type => Int)
   storeCount(@Parent() category: Category): Promise<number> {
-    return this.storeService.countStore(category);
+    return this.storeService.countStores(category);
   }
 
   @Query(type => AllCategoriesOutput)

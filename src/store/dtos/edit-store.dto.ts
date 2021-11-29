@@ -5,11 +5,8 @@ import { CreateStoreInput } from "./create-store.dto";
 
 @InputType()
 export class EditStoreInput extends PartialType(CreateStoreInput) {
-
   @Field(type => Number)
   storeId: number;
-
-
 }
 
 @ObjectType()
