@@ -1,14 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/users/entities/user.entity";
-import { ILike, Like } from "typeorm";
+import { ILike, Raw } from "typeorm";
 import { AllCategoriesOutput } from "./dtos/all-categories.dto";
 import { CategoryInput, CategoryOutput } from "./dtos/category.dto";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
 import { DeleteStoreOutput } from "./dtos/delete-store.dto";
 import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
 import { Category } from "./entities/category.entity";
-import { Store } from "./entities/store.entity";
 import { CategoryRepository } from "src/store/repositories/category.repository";
 import { StoresInput, StoresOutput } from "./dtos/stores.dto";
 import { StoreInput, StoreOutput } from "./dtos/store.dto";
@@ -20,7 +18,6 @@ import { StoreRepository } from "./repositories/store.repository";
 @Injectable()
 export class StoreService {
   constructor(
-    @InjectRepository(Store)
     private readonly stores: StoreRepository,
     private readonly categories: CategoryRepository,
     ) {}
@@ -88,7 +85,7 @@ export class StoreService {
   };
 
   async deleteStore(
-    owner,
+    owner: User,
     { storeId },
   ): Promise<DeleteStoreOutput> {
     try {
@@ -209,10 +206,9 @@ export class StoreService {
   }: SearchStoreInput): Promise<SearchStoreOutput> {
     try {
       return await this.stores.findAndCountPagination(page, {
-        name: Like(`%${query}%`)
+        name: ILike(`%${query}%`)
       });      
     } catch {
-      console.log(query, page, '실패결과')
       return {
         ok: false,
         error: "스토어를 검색할 수 없습니다.",

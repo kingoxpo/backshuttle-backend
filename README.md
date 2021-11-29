@@ -38,7 +38,11 @@ The Backend of BackShuttle
 - Search Store
 - See Store
 
-
 - Create Product
 - Edit Product
 - Delete Product
+
+- Orders CRUD
+- Orders Subscription (Owner, Customer, Delivery)
+
+- Payments (CRON)

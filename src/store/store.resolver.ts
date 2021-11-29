@@ -20,12 +20,12 @@ export class StoreResolver{
   
   @Mutation(returns => CreateStoreOutput)
   @Role(['Owner'])  
-  async createStore(
-    @AuthUser() authUser: User,
+  createStore(
+    @AuthUser() owner: User,
     @Args('input') createStoreInput: CreateStoreInput,
   ): Promise<CreateStoreOutput> {
     return this.storeService.createStore(
-      authUser,
+      owner,
       createStoreInput,
     );  
   }
