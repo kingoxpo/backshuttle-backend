@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/users/entities/user.entity";
-import { Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import { AllCategoriesOutput } from "./dtos/all-categories.dto";
 import { CategoryInput } from "./dtos/category.dto";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
@@ -11,6 +11,8 @@ import { Category } from "./entities/category.entity";
 import { Store } from "./entities/store.entity";
 import { CategoryRepository } from "src/store/repositories/category.repository";
 import { StoresInput, StoresOutput } from "./dtos/stores.dto";
+import { StoreInput, StoreOutput } from "./dtos/store.dto";
+import { SearchStoreInput, SearchStoreOutput } from "./dtos/search-store.dto";
 
 
 
@@ -192,5 +194,57 @@ export class StoreService {
       }
     }
   }
+
+
+  async findStoreById({
+    storeId,
+  }: StoreInput): Promise<StoreOutput> {
+    try {
+      const store = await this.stores.findOne(storeId);
+      if (!store){
+        return {
+          ok: false,
+          error:"스토어를 찾을 수 없습니다."
+        };
+      }
+      return {
+        ok: true,
+        store,
+      };
+      
+    } catch {
+      return {
+       ok: false,
+       error: "스토어를 불러올 수 없습니다.",
+      };
+    }
+  }
+
+  async searchStoreByName({
+    query,
+    page,
+  }: SearchStoreInput): Promise<SearchStoreOutput> {
+    try {
+      const [stores, totalResult] = await this.stores.findAndCount({
+        where: {
+          name: Like(`%${query}%`)
+        },          
+        take: 10,
+        skip: (page -1) * 10,
+      });
+      return {
+        ok: true,
+        stores,
+        totalResult,
+        totalPages: Math.ceil(totalResult / 10),
+      }
+    } catch {
+      return {
+        ok: false,
+        error: "스토어를 검색할 수 없습니다.",
+      }
+    }
+  }  
+
 };
 
