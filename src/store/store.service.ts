@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { User } from "src/users/entities/user.entity";
-import { ILike, Raw } from "typeorm";
+import { ILike } from "typeorm";
 import { AllCategoriesOutput } from "./dtos/all-categories.dto";
 import { CategoryInput, CategoryOutput } from "./dtos/category.dto";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
@@ -66,7 +66,7 @@ export class StoreService {
           editStoreInput.categoryName,
         );
       }
-      await this.stores.save([
+      await this.stores.save([ 
         {
           id: editStoreInput.storeId,
           ...editStoreInput,
