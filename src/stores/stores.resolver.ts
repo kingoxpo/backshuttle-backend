@@ -14,7 +14,7 @@ import { StoresInput, StoresOutput } from "./dtos/stores.dto";
 import { Category } from "./entities/category.entity";
 import { Product } from "./entities/product.entity";
 import { Store } from "./entities/store.entity";
-import { StoreService } from "./store.service";
+import { StoreService } from "./stores.service";
 
 @Resolver(of => Store)
 export class StoreResolver{

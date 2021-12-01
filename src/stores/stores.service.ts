@@ -243,14 +243,12 @@ export class StoreService {
           error: '권한이 없습니다.'
         };
       }
-
-      await this.stores.save(
+      await this.products.save(
         this.products.create({ ...createProductInput, store })
       );
-
       return {
         ok: true,
-      }      
+      };
     } catch {
       return {
         ok: false,
