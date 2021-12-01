@@ -4,6 +4,7 @@ import { Role } from "src/auth/role.decorator";
 import { User } from "src/users/entities/user.entity";
 import { AllCategoriesOutput } from "./dtos/all-categories.dto";
 import { CategoryInput, CategoryOutput } from "./dtos/category.dto";
+import { CreateProductInput, CreateProductOutput } from "./dtos/create-product.dto";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
 import { DeleteStoreInput, DeleteStoreOutput } from "./dtos/delete-store.dto";
 import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
@@ -11,6 +12,7 @@ import { SearchStoreInput, SearchStoreOutput } from "./dtos/search-store.dto";
 import { StoreInput, StoreOutput } from "./dtos/store.dto";
 import { StoresInput, StoresOutput } from "./dtos/stores.dto";
 import { Category } from "./entities/category.entity";
+import { Product } from "./entities/product.entity";
 import { Store } from "./entities/store.entity";
 import { StoreService } from "./store.service";
 
@@ -71,7 +73,6 @@ export class StoreResolver{
   ): Promise<SearchStoreOutput> {
     return this.storeService.searchStoreByName(serchStoreInput)
   }
-  
 }
 
 @Resolver(of => Category)
@@ -93,3 +94,20 @@ export class CategoryResolver{
     return this.storeService.findCategoryBySlug(categoryInput);
   }
 }
+
+@Resolver(of => Product)
+export class ProductResolver{
+  constructor(private readonly storeService: StoreService) {}
+  
+  @Mutation(returns => CreateProductOutput)
+  @Role(['Owner'])
+  createProduct(
+    @AuthUser() owner: User,
+    @Args('input') createProductInput: CreateProductInput,
+  ): Promise<CreateProductOutput> {
+    return this.storeService.createProduct(
+      owner,
+      createProductInput,
+    );  
+  }
+};

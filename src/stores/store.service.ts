@@ -1,25 +1,28 @@
 import { Injectable } from "@nestjs/common";
 import { User } from "src/users/entities/user.entity";
-import { ILike } from "typeorm";
+import { ILike, Repository } from "typeorm";
 import { AllCategoriesOutput } from "./dtos/all-categories.dto";
 import { CategoryInput, CategoryOutput } from "./dtos/category.dto";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
 import { DeleteStoreOutput } from "./dtos/delete-store.dto";
 import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
 import { Category } from "./entities/category.entity";
-import { CategoryRepository } from "src/store/repositories/category.repository";
 import { StoresInput, StoresOutput } from "./dtos/stores.dto";
 import { StoreInput, StoreOutput } from "./dtos/store.dto";
 import { SearchStoreInput, SearchStoreOutput } from "./dtos/search-store.dto";
 import { StoreRepository } from "./repositories/store.repository";
-
+import { CreateProductInput, CreateProductOutput } from "./dtos/create-product.dto";
+import { ProductRepository } from "./repositories/product.repository";
+import { CategoryRepository } from "./repositories/category.repository";
 
 
 @Injectable()
 export class StoreService {
+  
   constructor(
+    private readonly products: ProductRepository,
     private readonly stores: StoreRepository,
-    private readonly categories: CategoryRepository,
+    private readonly categories: CategoryRepository,  
     ) {}
 
     async createStore(
@@ -29,10 +32,12 @@ export class StoreService {
       try {
       const newStore = this.stores.create(createStoreInput);      
       newStore.owner = owner;
+
       const category = await this.categories.getOrCreate(
         createStoreInput.categoryName,
       );
-      newStore.category = category;        
+      newStore.category = category;    
+
       await this.stores.save(newStore);
       return {
         ok: true,
@@ -123,11 +128,11 @@ export class StoreService {
         error: '카테고리를 불러올 수 없습니다.'
       }
     }
-  }
+  };
 
   countStores(category: Category): Promise<number> {
     return this.stores.count({ category });
-  }
+  };
 
   async findCategoryBySlug({
     slug,
@@ -162,7 +167,7 @@ export class StoreService {
         error: '카테고리를 불러올 수 없습니다.',
       }
     }
-  }
+  };
 
   async allStores({ page }: StoresInput): Promise<StoresOutput> {
     try {
@@ -173,14 +178,16 @@ export class StoreService {
         error: '스토어를 불러올 수 없습니다.'
       };
     }
-  }
+  };
 
 
   async findStoreById({
     storeId,
   }: StoreInput): Promise<StoreOutput> {
     try {
-      const store = await this.stores.findOne(storeId);
+      const store = await this.stores.findOne(storeId, {
+        relations: ['products'],
+      });
       if (!store){
         return {
           ok: false,
@@ -198,7 +205,7 @@ export class StoreService {
        error: "스토어를 불러올 수 없습니다.",
       };
     }
-  }
+  };
 
   async searchStoreByName({
     query,
@@ -214,6 +221,44 @@ export class StoreService {
         error: "스토어를 검색할 수 없습니다.",
       }
     }
-  }  
-};
+  };
+
+  async createProduct(
+    owner: User,
+    createProductInput: CreateProductInput,
+  ): Promise<CreateProductOutput> {
+    try {
+      const store = await this.stores.findOne(
+        createProductInput.storeId,
+      );    
+      if(!store) {
+        return {
+          ok: false,
+          error: '스토어를 찾을 수 없습니다.'
+        };
+      }
+      if (owner.id !== store.ownerId){
+        return {
+          ok: false,
+          error: '권한이 없습니다.'
+        };
+      }
+
+      await this.stores.save(
+        this.products.create({ ...createProductInput, store })
+      );
+
+      return {
+        ok: true,
+      }      
+    } catch {
+      return {
+        ok: false,
+        error: '상품을 생성할 수 없습니다.'
+      }
+    }
+  }
+}    
+
+
 

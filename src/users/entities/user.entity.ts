@@ -4,7 +4,7 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import * as bcrypt from "bcrypt";
 import { InternalServerErrorException } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsEnum, IsString } from 'class-validator';
-import { Store } from 'src/store/entities/store.entity';
+import { Store } from 'src/stores/entities/store.entity';
 
 export enum UserRole {
   Owner = 'Owner',

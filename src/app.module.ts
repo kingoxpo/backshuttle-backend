@@ -10,10 +10,10 @@ import { JwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
-import { Category } from './store/entities/category.entity';
-import { Store } from './store/entities/store.entity';
-import { StoreModule } from './store/store.module';
-import { Product } from './store/entities/product.entity';
+import { Category } from './stores/entities/category.entity';
+import { Store } from './stores/entities/store.entity';
+import { StoreModule } from './stores/store.module';
+import { Product } from './stores/entities/product.entity';
 
 console.log(Joi);
 

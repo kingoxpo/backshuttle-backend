@@ -4,8 +4,18 @@ import { CoreEntity } from "src/common/entities/core.entity";
 import { Column, Entity, ManyToOne, RelationId } from "typeorm";
 import { Store } from "./store.entity";
 
+@InputType('ProductOptionInputType', { isAbstract: true })
+@ObjectType()
+class ProductOption {
+  @Field(type => String)
+  name: string;
+  @Field(type => [String], { nullable: true })
+  choices?: string[];
+  @Field(type => Int, { nullable: true })
+  extra?: number;
+}
 
-@InputType('ProductInputType',{ isAbstract: true })
+@InputType('ProductInputType', { isAbstract: true })
 @ObjectType()
 @Entity()
 export class Product extends CoreEntity {
@@ -20,8 +30,8 @@ export class Product extends CoreEntity {
   @IsNumber()
   price: number;
 
-  @Field(type => String)
-  @Column()
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
   @IsString()
   img: string;
 
@@ -35,12 +45,14 @@ export class Product extends CoreEntity {
   @ManyToOne(
     type => Store,
     store => store.products,
-    { onDelete: 'CASCADE' }
+    { onDelete: 'CASCADE', nullable: false }
   )
   store: Store;
 
   @RelationId((product: Product) => product.store)
   storeId: number;
 
-
+  @Field(type => [ProductOption], { nullable: true })
+  @Column({type: 'json', nullable: true })
+  options?: ProductOption[]
 }
