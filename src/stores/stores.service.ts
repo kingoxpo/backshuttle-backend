@@ -14,6 +14,8 @@ import { StoreRepository } from "./repositories/store.repository";
 import { CreateProductInput, CreateProductOutput } from "./dtos/create-product.dto";
 import { ProductRepository } from "./repositories/product.repository";
 import { CategoryRepository } from "./repositories/category.repository";
+import { EditProductInput, EditProductOutput } from "./dtos/edit-product.dto";
+import { DeleteProductOutput } from "./dtos/delete-product.dto";
 
 
 @Injectable()
@@ -256,6 +258,65 @@ export class StoreService {
       }
     }
   }
+
+  async editProduct(
+    owner: User,
+    editProductInput: EditProductInput,
+  ): Promise<EditProductOutput> {
+    try {
+      const checkProduct = await this.products.checkProduct(
+        owner.id,
+        editProductInput.productId,
+      );
+      if (!checkProduct.ok) {
+        return {
+          ...checkProduct,
+        }
+      }      
+
+      await this.products.save([ 
+        {
+          id: editProductInput.productId,
+          ...editProductInput,
+        },
+      ]);
+      
+      return {
+        ok: true,
+      }
+    } catch {
+      return {
+        ok:false,
+        error: '상품을 수정할 수 없습니다.'
+      };
+    };
+  };
+
+  async deleteProduct(
+    owner: User,
+    { productId },
+  ): Promise<DeleteProductOutput> {
+    try {
+      const checkProduct = await this.products.checkProduct(
+        owner.id,
+        productId,
+      );
+      if (!checkProduct.ok) {
+        return {
+          ...checkProduct,         
+        };
+      }
+      await this.products.delete(productId)
+      return {
+        ok: true,
+      };
+    } catch {
+      return {
+        ok:false,
+        error: '상품을 삭제할 수 없습니다.'
+      };
+    };
+  };
 }    
 
 

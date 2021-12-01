@@ -6,7 +6,9 @@ import { AllCategoriesOutput } from "./dtos/all-categories.dto";
 import { CategoryInput, CategoryOutput } from "./dtos/category.dto";
 import { CreateProductInput, CreateProductOutput } from "./dtos/create-product.dto";
 import { CreateStoreInput, CreateStoreOutput } from "./dtos/create-store.dto";
+import { DeleteProductInput, DeleteProductOutput } from "./dtos/delete-product.dto";
 import { DeleteStoreInput, DeleteStoreOutput } from "./dtos/delete-store.dto";
+import { EditProductInput, EditProductOutput } from "./dtos/edit-product.dto";
 import { EditStoreInput, EditStoreOutput } from "./dtos/edit-store.dto";
 import { SearchStoreInput, SearchStoreOutput } from "./dtos/search-store.dto";
 import { StoreInput, StoreOutput } from "./dtos/store.dto";
@@ -109,5 +111,23 @@ export class ProductResolver{
       owner,
       createProductInput,
     );  
+  }
+  
+  @Mutation(returns => EditProductOutput)
+  @Role(['Owner'])
+  editProduct(
+    @AuthUser() owner: User,
+    @Args('input') editProductInpit: EditProductInput,    
+  ): Promise<EditProductOutput> {
+    return this.storeService.editProduct(owner, editProductInpit)
+  }
+
+  @Mutation(returns => DeleteProductOutput)
+  @Role(['Owner'])
+  deleteProduct(    
+    @AuthUser() owner: User,
+    @Args('input') deleteProductInput: DeleteProductInput,
+  ): Promise<DeleteProductOutput> {
+    return this.storeService.deleteProduct(owner, deleteProductInput);
   }
 };

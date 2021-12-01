@@ -3,10 +3,10 @@ import { CoreOutput } from "src/common/dtos/output.dto";
 
 
 @InputType()
-export class DeleteStoreInput {
+export class DeleteProductInput {
   @Field(type => Int)
-  storeId: number;
+  productId: number;
 }
 
 @ObjectType()
-export class DeleteStoreOutput extends CoreOutput {}
+export class DeleteProductOutput extends CoreOutput {}
