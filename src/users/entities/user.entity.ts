@@ -5,13 +5,14 @@ import * as bcrypt from "bcrypt";
 import { InternalServerErrorException } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsEnum, IsString } from 'class-validator';
 import { Store } from 'src/stores/entities/store.entity';
+import { Order } from 'src/orders/entities/order.entity';
 
 export enum UserRole {
   Owner = 'Owner',
   Client = 'Client',
   Delivery = 'Delivery',
 }
-registerEnumType(UserRole, {name:"UserRole"})
+registerEnumType(UserRole, { name: 'UserRole' })
 
 @InputType('UserInputType',{ isAbstract:true })
 @ObjectType()
@@ -42,7 +43,21 @@ export class User extends CoreEntity{
       type => Store,
       store => store.owner,
     )
-    stores: Store[];    
+    stores: Store[];  
+    
+    @Field(type => [Order])
+    @OneToMany(
+      type => Order,
+      order => order.customer,
+    )
+    orders: Order[];
+
+    @Field(type => [Order])
+    @OneToMany(
+      type => Order,
+      order => order.driver,
+    )
+    rides: Order[];
 
     @BeforeInsert()
     @BeforeUpdate()
