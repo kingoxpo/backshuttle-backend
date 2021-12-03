@@ -14,6 +14,7 @@ export enum OrderStatus {
   Cancel = 'Cancel',
 }
 
+
 registerEnumType(OrderStatus, { name: 'OrderStatus' })
 
 
@@ -51,9 +52,9 @@ export class Order extends CoreEntity {
   @JoinTable()
   products: Product[]
 
-  @Column()
-  @Field(type => Float)
-  total: number
+  @Column({ nullable: true })
+  @Field(type => Float, { nullable: true })
+  total?: number
 
   @Column({ type: 'enum', enum: OrderStatus})
   @Field(type => OrderStatus)
