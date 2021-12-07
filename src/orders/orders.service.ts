@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Store } from "src/stores/entities/store.entity";
 import { User } from "src/users/entities/user.entity";
 import { Repository } from "typeorm";
 import { CreateOrderInput, CreateOrderOutput } from "./dtos/create-order.dto";
@@ -9,28 +10,33 @@ import { Order } from "./entities/order.entity";
 export class OrderService {
   constructor(
     @InjectRepository(Order)
-    private readonly orders: Repository<Order>
+    private readonly orders: Repository<Order>,
+    @InjectRepository(Store)
+    private readonly stores: Repository<Store>
   ) {}
 
   async createOrder(
-    client: User,
-    createOrderInput: CreateOrderInput,
+    customer: User,
+    {storeId, items}: CreateOrderInput,
   ): Promise<CreateOrderOutput> {
     try {
-      const store = await this.orders.findOne(
-        createOrderInput.storeId,
-      )
-      const newOrder = await this.orders.create(createOrderInput)      
-      if(!store) {
-        return {
-          ok: false,
-          error: '스토어를 찾을 수 없습니다.'
-        };
-      }
-      await this.orders.save(newOrder) 
+      const store = await this.stores.findOne(storeId)
+    if(!store) {
+      return {
+        ok: false,
+        error: '스토어를 찾을 수 없습니다.'
+      };
+    }
+      const order = await this.orders.save(
+        this.orders.create({
+          customer,
+          store,
+        }),
+      );
+      console.log(order)
       return {
         ok: true,
-      }  
+      };    
     } catch {
       return {
         ok: false,
