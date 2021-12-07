@@ -16,6 +16,7 @@ import { Product } from './stores/entities/product.entity';
 import { StoreModule } from './stores/stores.module';
 import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
+import { OrderItem } from './orders/entities/order-item.entity';
 
 console.log(Joi);
 
@@ -49,7 +50,7 @@ console.log(Joi);
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== "prod",
       logging: process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
-      entities: [User, Verification, Category, Store, Product, Order],
+      entities: [User, Verification, Category, Store, Product, Order, OrderItem],
     }),
     GraphQLModule.forRoot({
     autoSchemaFile: true,
