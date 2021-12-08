@@ -8,13 +8,8 @@ import { Store } from "./store.entity";
 @InputType('ProductSelectInputType', { isAbstract: true })
 @ObjectType()
 export class ProductSelect {
-
   @Field(type => String)
   name: string;  
-  
-  @Field(type => String, { nullable: true })
-  choices?: ProductSelect[];  
-
   @Field(type => Int, { nullable: true })
   extra?: number;
 }
