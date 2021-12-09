@@ -34,17 +34,41 @@ export class OrderService {
         error: '스토어를 찾을 수 없습니다.'
       };
     }
-    items.forEach(async item => {
+    for (const item of items) {
       const product = await this.products.findOne(item.productId)
       if(!product){
+        return {
+          ok: false,
+          error: '상품을 찾을 수 없습니다.'       
+        }
         // 상품을 못찾으면 작업 전부 취소
       }
-      await this.orderItems.save(this.orderItems.create({
-        product,
-        options: item.options,
-      }))
-
-    })
+      console.log(`주문가격: ₩${product.price}원`)
+      for(const itemOption of item.options) {        
+        const productOption = product.options.find(
+          productOption => productOption.name === itemOption.name,
+        );
+        if(productOption) {
+          if(productOption.extra) {
+            console.log(`₩${productOption.extra}원`)
+          } else {
+            const productOptionSelect = productOption.selects.find(
+              productSelect => productSelect.name === itemOption.select,
+            );
+            if (productOptionSelect) {
+              if (productOptionSelect.extra) {
+                console.log(`₩${productOptionSelect.extra}원`)
+              }
+            }            
+          }          
+        }
+      }
+      //   await this.orderItems.save(this.orderItems.create({
+      //     product,
+      //     options: item.options,
+      //   }),
+      // );
+    };
     // const order = await this.orders.save(
       //   this.orders.create({
       //     customer,

@@ -9,12 +9,8 @@ import { Column, Entity, ManyToOne } from "typeorm";
 export class OrderItemOption {
   @Field(type => String)
   name: string;
-
   @Field(type => String, { nullable: true })
   select?: String;
-
-  @Field(type => Int, { nullable: true })
-  extra?: number;
 }
 
 
