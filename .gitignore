@@ -40,5 +40,7 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # categoryImg
-
 /categoryImg
+
+# user token
+.userToken.md

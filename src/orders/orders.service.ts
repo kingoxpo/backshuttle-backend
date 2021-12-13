@@ -2,9 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Product } from "src/stores/entities/product.entity";
 import { Store } from "src/stores/entities/store.entity";
-import { User } from "src/users/entities/user.entity";
+import { User, UserRole } from "src/users/entities/user.entity";
 import { Repository } from "typeorm";
 import { CreateOrderInput, CreateOrderOutput } from "./dtos/create-order.dto";
+import { GetOrdersInput, GetOrdersOutput } from "./dtos/get-orders.dto";
 import { OrderItem } from "./entities/order-item.entity";
 import { Order } from "./entities/order.entity";
 
@@ -73,16 +74,14 @@ export class OrderService {
       );
       orderItems.push(orderItem);
     }
-    console.log(orderFinalPrice)
-    const order = await this.orders.save(
+    await this.orders.save(
         this.orders.create({
           customer,
           store,
           total: orderFinalPrice,
           items: orderItems,
         }),
-      );      
-      console.log(order)
+      );
       return {
         ok: true,
       };    
@@ -90,6 +89,46 @@ export class OrderService {
       return {
         ok: false,
         error: '주문을 생성할 수 없습니다.'
+      }
+    }
+  }
+
+
+  async getOrders(
+    user:User, {status}: GetOrdersInput,
+    ): Promise<GetOrdersOutput> {
+      try {
+        
+      let orders: Order[]
+      if(user.role === UserRole.Client) {
+        orders = await this.orders.find({
+          where: {
+            customer: user,
+          },
+        });
+      } else if(user.role === UserRole.Delivery) {
+        orders = await this.orders.find({
+          where: {
+            driver: user,
+          },
+        });
+      } else if(user.role === UserRole.Owner) {
+        const stores = await this.stores.find({
+          where: {
+            owner: user,
+          },
+          relations: ['orders'],
+        });
+        orders = stores.map(store => store.orders).flat(1);
+      }
+      return {
+        ok: true,
+        orders
+      };
+    } catch {
+      return {
+        ok: false,
+        error: '주문을 불러올 수 없습니다.'
       }
     }
   }

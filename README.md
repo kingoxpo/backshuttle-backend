@@ -44,5 +44,4 @@ The Backend of BackShuttle
 
 - Orders CRUD
 - Orders Subscription (Owner, Customer, Delivery)
-
 - Payments (CRON)
