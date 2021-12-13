@@ -34,48 +34,55 @@ export class OrderService {
         error: '스토어를 찾을 수 없습니다.'
       };
     }
+    let orderFinalPrice = 0;
+    const orderItems: OrderItem[] = [];
     for (const item of items) {
       const product = await this.products.findOne(item.productId)
       if(!product){
         return {
           ok: false,
           error: '상품을 찾을 수 없습니다.'       
-        }
-        // 상품을 못찾으면 작업 전부 취소
+        };
       }
-      console.log(`주문가격: ₩${product.price}원`)
-      for(const itemOption of item.options) {        
+      let productFinalPrice = product.price;
+      for (const itemOption of item.options) {        
         const productOption = product.options.find(
           productOption => productOption.name === itemOption.name,
         );
         if(productOption) {
           if(productOption.extra) {
-            console.log(`₩${productOption.extra}원`)
+            productFinalPrice = productFinalPrice + productOption.extra
           } else {
             const productOptionSelect = productOption.selects.find(
               productSelect => productSelect.name === itemOption.select,
             );
             if (productOptionSelect) {
               if (productOptionSelect.extra) {
-                console.log(`₩${productOptionSelect.extra}원`)
+                productFinalPrice = productFinalPrice + productOptionSelect.extra;
               }
             }            
           }          
         }
       }
-      //   await this.orderItems.save(this.orderItems.create({
-      //     product,
-      //     options: item.options,
-      //   }),
-      // );
-    };
-    // const order = await this.orders.save(
-      //   this.orders.create({
-      //     customer,
-      //     store,
-      //   }),
-      // );
-      // console.log(order)
+      orderFinalPrice = orderFinalPrice + productFinalPrice;
+      const orderItem = await this.orderItems.save(
+        this.orderItems.create({
+          product,
+          options: item.options,
+        }),
+      );
+      orderItems.push(orderItem);
+    }
+    console.log(orderFinalPrice)
+    const order = await this.orders.save(
+        this.orders.create({
+          customer,
+          store,
+          total: orderFinalPrice,
+          items: orderItems,
+        }),
+      );      
+      console.log(order)
       return {
         ok: true,
       };    
