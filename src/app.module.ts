@@ -24,8 +24,8 @@ console.log(Joi);
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === "dev" ? ".env.dev" : ".env.test",
-      ignoreEnvFile: process.env.NODE_ENV === "prod",
+      envFilePath: process.env.NODE_ENV ===  'dev' ? '.env.dev' : '.env.test',
+      ignoreEnvFile: process.env.NODE_ENV === 'prod',
       validationSchema: Joi.object({
         NODE_ENV: Joi.string()
           .valid('dev', 'prod', 'test')
@@ -50,11 +50,23 @@ console.log(Joi);
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== "prod",
       logging: process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
-      entities: [User, Verification, Category, Store, Product, Order, OrderItem],
+      entities: [
+        User,
+        Verification,
+        Category,
+        Store,
+        Product,
+        Order,
+        OrderItem
+      ],
     }),
     GraphQLModule.forRoot({
-    autoSchemaFile: true,
-      context: ({req}) => ({ user: req['user'] }),
+      installSubscriptionHandlers: true,
+      autoSchemaFile: true,
+      context: ({req}) =>{
+        console.log(req);
+        return { user: req['user'] };
+      },
     }),
     AuthModule,
     UsersModule,
