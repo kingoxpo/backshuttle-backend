@@ -10,6 +10,7 @@ import { OrderItem } from "./order-item.entity";
 export enum OrderStatus {
   Pending = 'Pending',
   Confirm = 'Confirm',
+  Packed = 'Packed',
   PickedUp = 'PickedUp',
   Delivered = 'Delivered',
   Refund = 'Refund',
