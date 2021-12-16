@@ -18,8 +18,6 @@ import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
 
-console.log(Joi);
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -63,14 +61,14 @@ console.log(Joi);
     GraphQLModule.forRoot({
       installSubscriptionHandlers: true,
       autoSchemaFile: true,
-      context: ({req}) =>{
-        console.log(req);
-        return { user: req['user'] };
+      context: ({ req, connection }) => {        
+        if (req) {
+          return { user: req['user'] };
+        } else {
+          console.log(connection)
+        }
       },
     }),
-    AuthModule,
-    UsersModule,
-    StoreModule,
     JwtModule.forRoot({
       privateKey: process.env.PRIVATE_KEY,
     }),
@@ -80,6 +78,8 @@ console.log(Joi);
       fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
     AuthModule,
+    UsersModule,
+    StoreModule,
     OrdersModule,
   ],
   controllers: [],

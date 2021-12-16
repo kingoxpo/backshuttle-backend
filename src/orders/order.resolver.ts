@@ -56,7 +56,7 @@ export class OrderResolver{
   }
 
   @Subscription(returns => String)
-  lipBalm(){
+  lipBalm() {
     return pubsub.asyncIterator('lipBalm');
   }
 }

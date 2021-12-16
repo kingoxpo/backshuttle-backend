@@ -1,7 +1,6 @@
 import { Field, Float, InputType, ObjectType, registerEnumType } from "@nestjs/graphql";
-import { IsEnum, IsNumber, IsString } from "class-validator";
+import { IsEnum, IsNumber } from "class-validator";
 import { CoreEntity } from "src/common/entities/core.entity";
-import { Product } from "src/stores/entities/product.entity";
 import { Store } from "src/stores/entities/store.entity";
 import { User } from "src/users/entities/user.entity";
 import { Column, Entity, JoinTable, ManyToMany, ManyToOne, RelationId } from "typeorm";
@@ -9,12 +8,12 @@ import { OrderItem } from "./order-item.entity";
 
 export enum OrderStatus {
   Pending = 'Pending',
-  Confirm = 'Confirm',
-  Packed = 'Packed',
-  PickedUp = 'PickedUp',
-  Delivered = 'Delivered',
-  Refund = 'Refund',
-  Cancel = 'Cancel',
+  Confirm = 'Confirm', // 오너 수정가능
+  Packed = 'Packed', // 오너 수정가능
+  PickedUp = 'PickedUp', // 배달원 수정가능, 오너 수정가능
+  Delivered = 'Delivered', // 배달원 수정가능
+  Refunded = 'Refunded', // 오너 수정 가능
+  Cancel = 'Cancel', // pending 상태일때만 고객 수정 가능
 }
 
 
