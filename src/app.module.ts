@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import * as Joi from 'joi';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -13,7 +18,7 @@ import { MailModule } from './mail/mail.module';
 import { Store } from './stores/entities/store.entity';
 import { Category } from './stores/entities/category.entity';
 import { Product } from './stores/entities/product.entity';
-import { StoreModule } from './stores/stores.module';
+import { StoresModule } from './stores/stores.module';
 import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
@@ -22,12 +27,10 @@ import { OrderItem } from './orders/entities/order-item.entity';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV ===  'dev' ? '.env.dev' : '.env.test',
+      envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test',
       ignoreEnvFile: process.env.NODE_ENV === 'prod',
       validationSchema: Joi.object({
-        NODE_ENV: Joi.string()
-          .valid('dev', 'prod', 'test')
-          .required(),
+        NODE_ENV: Joi.string().valid('dev', 'prod', 'test').required(),
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.string().required(),
         DB_USERNAME: Joi.string().required(),
@@ -46,8 +49,9 @@ import { OrderItem } from './orders/entities/order-item.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      synchronize: process.env.NODE_ENV !== "prod",
-      logging: process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
+      synchronize: process.env.NODE_ENV !== 'prod',
+      logging:
+        process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
       entities: [
         User,
         Verification,
@@ -55,19 +59,19 @@ import { OrderItem } from './orders/entities/order-item.entity';
         Store,
         Product,
         Order,
-        OrderItem
+        OrderItem,
       ],
     }),
     GraphQLModule.forRoot({
-      installSubscriptionHandlers: true,
-      autoSchemaFile: true,
-      context: ({ req, connection }) => {        
-        if (req) {
-          return { user: req['user'] };
-        } else {
-          console.log(connection)
-        }
+      subscriptions: {
+        'subscriptions-transport-ws': {
+          onConnect: (connectionParams: any) => ({
+            token: connectionParams['x-jwt'],
+          }),
+        },
       },
+      autoSchemaFile: true,
+      context: ({ req }) => ({ token: req.headers['x-jwt'] }),
     }),
     JwtModule.forRoot({
       privateKey: process.env.PRIVATE_KEY,
@@ -79,16 +83,10 @@ import { OrderItem } from './orders/entities/order-item.entity';
     }),
     AuthModule,
     UsersModule,
-    StoreModule,
+    StoresModule,
     OrdersModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule {
-  configure(consumer:MiddlewareConsumer){
-    consumer
-      .apply(JwtMiddleware)
-      .forRoutes({ path: '/graphql', method: RequestMethod.POST });
-  }
-}
+export class AppModule {}

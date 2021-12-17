@@ -59,7 +59,9 @@ export class OrderResolver {
   }
 
   @Subscription((returns) => String)
-  readylipBalm() {
+  @Role(['Any'])
+  readylipBalm(@AuthUser() user: User) {
+    console.log(user);
     return pubsub.asyncIterator('lipBalm');
   }
 }
