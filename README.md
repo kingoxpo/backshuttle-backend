@@ -43,7 +43,12 @@ The Backend of BackShuttle
 - Delete Product
 
 - Orders CRUD
-- Orders Subscription (Owner, Customer, Delivery)
+- Orders Subscription :
+
+  - Pending Orders (s: newOrder) (t: createOrder(newOrder))
+  - Order Status (Customer) (s: orderUpdate) (t: editOrder(orderUpdate))
+  - Pending Pickup Order (Delivery) (s: orderUpdate) (t: editOrder(orderUpdate))
+
 - Payments (CRON)
 
 - Payment being verified
