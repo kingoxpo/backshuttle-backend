@@ -1,7 +1,9 @@
+import { Inject } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { PubSub } from 'graphql-subscriptions';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/role.decorator';
+import { PUB_SUB } from 'src/common/common.constants';
 import { User } from 'src/users/entities/user.entity';
 import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
@@ -10,11 +12,12 @@ import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { Order } from './entities/order.entity';
 import { OrderService } from './orders.service';
 
-const pubsub = new PubSub();
-
 @Resolver((of) => Order)
 export class OrderResolver {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) {}
 
   @Mutation((returns) => CreateOrderOutput)
   @Role(['Client'])
@@ -53,15 +56,20 @@ export class OrderResolver {
   }
 
   @Mutation((returns) => Boolean)
-  lipbalmReady() {
-    pubsub.publish('lipBalm', { readylipBalm: 'Your lipBalm is ready.' });
+  async lipbalmReady(@Args('lipBalmId') lipBalmId: number) {
+    await this.pubSub.publish('lipBalm', {
+      readylipBalm: lipBalmId,
+    });
     return true;
   }
 
-  @Subscription((returns) => String)
+  @Subscription((returns) => String, {
+    filter: ({ readylipBalm }, { lipBalmId }) => {
+      return readylipBalm === lipBalmId;
+    },
+  })
   @Role(['Any'])
-  readylipBalm(@AuthUser() user: User) {
-    console.log(user);
-    return pubsub.asyncIterator('lipBalm');
+  readylipBalm(@Args('lipBalmId') lipBalmId: number) {
+    return this.pubSub.asyncIterator('lipBalm');
   }
 }

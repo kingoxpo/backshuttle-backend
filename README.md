@@ -29,8 +29,8 @@ The Backend of BackShuttle
 
 ## Manage Store
 
-- Edit Store *only auth Owner
-- Delete Store *only auth Owner
+- Edit Store \*only auth Owner
+- Delete Store \*only auth Owner
 
 - See Categories
 - See Store by Category (pagination)
@@ -45,3 +45,5 @@ The Backend of BackShuttle
 - Orders CRUD
 - Orders Subscription (Owner, Customer, Delivery)
 - Payments (CRON)
+
+- Payment being verified
