@@ -46,7 +46,7 @@ The Backend of BackShuttle
 - Orders Subscription :
 
   - Pending Orders (s: newOrder) (t: createOrder(newOrder))
-  - Order Status (Customer) (s: orderUpdate) (t: editOrder(orderUpdate))
+  - Order Status (Customer, Delivery, Owner) (s: orderUpdate) (t: editOrder(orderUpdate))
   - Pending Pickup Order (Delivery) (s: orderUpdate) (t: editOrder(orderUpdate))
 
 - Payments (CRON)

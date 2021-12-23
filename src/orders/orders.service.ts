@@ -1,7 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
-import { NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constants';
+import {
+  NEW_PACKED_ORDER,
+  NEW_PENDING_ORDER,
+  PUB_SUB,
+} from 'src/common/common.constants';
 import { Product } from 'src/stores/entities/product.entity';
 import { Store } from 'src/stores/entities/store.entity';
 import { User, UserRole } from 'src/users/entities/user.entity';
@@ -24,7 +28,8 @@ export class OrderService {
     private readonly stores: Repository<Store>,
     @InjectRepository(Product)
     private readonly products: Repository<Product>,
-    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+    @Inject(PUB_SUB)
+    private readonly pubSub: PubSub,
   ) {}
 
   async createOrder(
@@ -88,7 +93,7 @@ export class OrderService {
         }),
       );
       await this.pubSub.publish(NEW_PENDING_ORDER, {
-        pendingOrders: order,
+        pendingOrders: { order, ownerId: store.ownerId },
       });
       return {
         ok: true,
@@ -242,12 +247,17 @@ export class OrderService {
           error: '권한이 없습니다.',
         };
       }
-      await this.orders.save([
-        {
-          id: orderId,
-          status,
-        },
-      ]);
+      const newOrder = await this.orders.save({
+        id: orderId,
+        status,
+      });
+      if (user.role === UserRole.Owner) {
+        if (status === OrderStatus.Packed) {
+          await this.pubSub.publish(NEW_PACKED_ORDER, {
+            packedOrders: { ...order, status },
+          });
+        }
+      }
       return {
         ok: true,
       };
