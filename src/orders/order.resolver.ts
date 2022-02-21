@@ -4,6 +4,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/role.decorator';
 import {
+  NEW_ORDER_UPDATE,
   NEW_PACKED_ORDER,
   NEW_PENDING_ORDER,
   PUB_SUB,
@@ -13,6 +14,8 @@ import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
+import { OrderUpdatesInput } from './dtos/order-updates.dto';
+import { TakeOrderInput, TakeOrderOutput } from './dtos/take-order.dto';
 import { Order } from './entities/order.entity';
 import { OrderService } from './orders.service';
 
@@ -76,21 +79,33 @@ export class OrderResolver {
     return this.pubSub.asyncIterator(NEW_PACKED_ORDER);
   }
 
-  // @Mutation((returns) => Boolean)
-  // async lipbalmReady(@Args('lipBalmId') lipBalmId: number) {
-  //   await this.pubSub.publish('lipBalm', {
-  //     readylipBalm: lipBalmId,
-  //   });
-  //   return true;
-  // }
+  @Subscription((returns) => Order, {
+    filter: (
+      { orderUpdates: order }: { orderUpdates: Order },
+      { input }: { input: OrderUpdatesInput },
+      { user }: { user: User },
+    ) => {
+      if (
+        order.driverId !== user.id &&
+        order.customerId !== user.id &&
+        order.store.ownerId !== user.id
+      ) {
+        return false;
+      }
+      return order.id === input.id;
+    },
+  })
+  @Role(['Any'])
+  orderUpdates(@Args('input') orderUpdatesInput: OrderUpdatesInput) {
+    return this.pubSub.asyncIterator(NEW_ORDER_UPDATE);
+  }
 
-  // @Subscription((returns) => String, {
-  //   filter: ({ readylipBalm }, { lipBalmId }) => {
-  //     return readylipBalm === lipBalmId;
-  //   },
-  //   resolve: ({ readylipBalm }) => `Your lipbalm with the id ${readylipBalm}is`,
-  // })
-  // @Role(['Any'])
-  // readylipBalm(@Args('lipBalmId') lipBalmId: number) {
-  //   return this.pubSub.asyncIterator('lipBalm');
+  @Mutation((returns) => TakeOrderOutput)
+  @Role(['Delivery'])
+  takeOrder(
+    @AuthUser() driver: User,
+    @Args('input') takeOrderInput: TakeOrderInput,
+  ): Promise<TakeOrderOutput> {
+    return this.orderService.takeOrder(driver, takeOrderInput);
+  }
 }

@@ -52,3 +52,15 @@ The Backend of BackShuttle
 - Payments (CRON)
 
 - Payment being verified
+
+client: {
+"x-jwt":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwiaWF0IjoxNjM5MzgzNzExfQ.PGqYeYKy_r2stB78lM_2cYfG5JgbbMWzGivN8hY0jPg"
+}
+
+owner: {
+"x-jwt":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNjM5NjM4OTYwfQ.NGxP8YTNICSMd-E95kBWCa-EY_owj9sJK6We_p3m8ak"
+}
+
+driver: {
+"x-jwt":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiaWF0IjoxNjQ1NDMxOTgxfQ.IM5l-PRQcYMmq0rMUyocKJTMtpWtEFfN9SB9ECRUvvw"
+}

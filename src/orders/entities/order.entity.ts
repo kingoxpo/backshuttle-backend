@@ -37,8 +37,9 @@ registerEnumType(OrderStatus, { name: 'OrderStatus' });
 export class Order extends CoreEntity {
   @Field((type) => User, { nullable: true })
   @ManyToOne((type) => User, (user) => user.orders, {
-    nullable: true,
     onDelete: 'SET NULL',
+    nullable: true,
+    eager: true,
   })
   customer?: User;
 
@@ -47,8 +48,9 @@ export class Order extends CoreEntity {
 
   @Field((type) => User, { nullable: true })
   @ManyToOne((type) => User, (user) => user.rides, {
-    nullable: true,
     onDelete: 'SET NULL',
+    nullable: true,
+    eager: true,
   })
   driver?: User;
 
@@ -57,13 +59,14 @@ export class Order extends CoreEntity {
 
   @Field((type) => Store)
   @ManyToOne((type) => Store, (store) => store.orders, {
-    nullable: true,
     onDelete: 'SET NULL',
+    nullable: true,
+    eager: true,
   })
   store: Store;
 
   @Field((type) => [OrderItem])
-  @ManyToMany((type) => OrderItem)
+  @ManyToMany((type) => OrderItem, { eager: true })
   @JoinTable()
   items: OrderItem[];
 

@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PubSub } from 'graphql-subscriptions';
 import {
+  NEW_ORDER_UPDATE,
   NEW_PACKED_ORDER,
   NEW_PENDING_ORDER,
   PUB_SUB,
@@ -14,6 +15,7 @@ import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
+import { TakeOrderInput, TakeOrderOutput } from './dtos/take-order.dto';
 import { OrderItem } from './entities/order-item.entity';
 import { Order, OrderStatus } from './entities/order.entity';
 
@@ -204,7 +206,7 @@ export class OrderService {
   ): Promise<EditOrderOutput> {
     try {
       const order = await this.orders.findOne(orderId, {
-        relations: ['store'],
+        relations: ['store', 'customer', 'driver'],
       });
       if (!order) {
         return {
@@ -247,17 +249,57 @@ export class OrderService {
           error: '권한이 없습니다.',
         };
       }
-      const newOrder = await this.orders.save({
+      await this.orders.save({
         id: orderId,
         status,
       });
+      const newOrder = { ...order, status };
       if (user.role === UserRole.Owner) {
         if (status === OrderStatus.Packed) {
           await this.pubSub.publish(NEW_PACKED_ORDER, {
-            packedOrders: { ...order, status },
+            packedOrders: newOrder,
           });
         }
       }
+      await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
+      return {
+        ok: true,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: '주문을 수정할 수 없습니다.',
+      };
+    }
+  }
+
+  async takeOrder(
+    driver: User,
+    { id: orderId }: TakeOrderInput,
+  ): Promise<TakeOrderOutput> {
+    try {
+      const order = await this.orders.findOne(orderId);
+      if (!order) {
+        return {
+          ok: false,
+          error: '주문을 찾을 수 없습니다.',
+        };
+      }
+      if (order.driver) {
+        return {
+          ok: false,
+          error: '이미 기사가 배정되어있습니다.',
+        };
+      }
+      await this.orders.save([
+        {
+          id: orderId,
+          driver,
+        },
+      ]);
+      await this.pubSub.publish(NEW_ORDER_UPDATE, {
+        orderUpdates: { ...order, driver },
+      });
       return {
         ok: true,
       };
