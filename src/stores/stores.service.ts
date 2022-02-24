@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { User } from 'src/users/entities/user.entity';
-import { ILike, Repository } from 'typeorm';
+import { ILike } from 'typeorm';
 import { AllCategoriesOutput } from './dtos/all-categories.dto';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import { CreateStoreInput, CreateStoreOutput } from './dtos/create-store.dto';

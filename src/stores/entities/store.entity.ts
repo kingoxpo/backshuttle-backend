@@ -49,4 +49,12 @@ export class Store extends CoreEntity {
   @Field((type) => [Product])
   @OneToMany((type) => Product, (product) => product.store)
   products: Product[];
+
+  @Field((type) => Boolean)
+  @Column({ default: false })
+  isPromoted: boolean;
+
+  @Field((type) => Date, { nullable: true })
+  @Column({ nullable: true })
+  promotedUntil?: Date;
 }

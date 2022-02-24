@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Store } from 'src/stores/entities/store.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import {
   CreatePaymentInput,
   CreatePaymentOutput,
@@ -17,6 +18,7 @@ export class PaymentService {
     private readonly payments: Repository<Payment>,
     @InjectRepository(Store)
     private readonly stores: Repository<Store>,
+    private schedulerRegistry: SchedulerRegistry,
   ) {}
 
   async createPayment(
@@ -37,6 +39,7 @@ export class PaymentService {
           error: '권한이 없습니다.',
         };
       }
+
       await this.payments.save(
         this.payments.create({
           transactionId,
@@ -44,6 +47,11 @@ export class PaymentService {
           store,
         }),
       );
+      store.isPromoted = true;
+      const date = new Date();
+      date.setDate(date.getDate() + 7);
+      store.promotedUntil = date;
+      this.stores.save(store);
       return {
         ok: true,
       };
@@ -66,4 +74,34 @@ export class PaymentService {
       };
     }
   }
+
+  @Cron('0 24 * * *')
+  async checkPromotedStores() {
+    const stores = await this.stores.find({
+      isPromoted: true,
+      promotedUntil: LessThan(new Date()),
+    });
+    console.log(stores);
+    stores.forEach(async (store) => {
+      store.isPromoted = false;
+      store.promotedUntil = null;
+      await this.stores.save(store);
+    });
+  }
+  // @Cron('30 * * * * *', {
+  //   name: 'myJob',
+  // })
+  // async checkForPayments() {
+  //   console.log('지불정보를 확인하고 있습니다....(cron)');
+  //   const job = this.schedulerRegistry.getCronJob('myJob');
+  //   job.stop();
+  // }
+  // @Interval(10000)
+  // async checkForPayments2() {
+  //   console.log('지불정보를 확인하고 있습니다....(interval)');
+  // }
+  // @Timeout(20000)
+  // async afterStarts() {
+  //   console.log('구매해주셔서 감사합니다.');
+  // }
 }
